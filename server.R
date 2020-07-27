@@ -10,7 +10,16 @@ server <- function(input, output, session) {
   )                           
 
   output$trials <- renderDataTable(
-    trials_subset_filtered(), rownames=TRUE, options = list(pageLength = 25), selection = 'single'
+    trials_subset_filtered(), 
+    rownames=TRUE, 
+    plugins = "ellipsis", 
+    options = list(pageLength = 25,
+                   columnDefs = list(list(
+                     targets = c(1,2,3,4,5,6,7,8,9,10,11,12),
+                     render = JS("$.fn.dataTable.render.ellipsis( 15, false )")
+                   ))), 
+    selection = 'single',
+    class = "display nowrap"
   )
   
   observeEvent(input$trials_rows_selected,

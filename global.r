@@ -13,7 +13,7 @@ library(stringr)
 
 date_data_transfer <- "2020-07-21"
 
-trials <- get(load("data/dat_processed_and_network.RData"))
+trials <- get(load("/data/dat_processed_and_network.RData"))
 
 id <- rownames(trials)
 trials <- cbind(id=id, trials)
