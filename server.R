@@ -2,16 +2,15 @@ server <- function(input, output, session) {
   
   trials_subset_filtered <- reactive(
     trials_subset %>% filter(expected_enrollment >= input$expected_enrollment,
-                             study_design %in% input$study_design,
-                             as.Date(completion_date) >= input$completion_date[1] & as.Date(completion_date) <= input$completion_date[2]#,
-#                           #str_detect(treatment, input$treatment),
-                             #str_detect(outcome, input$outcome)
+                             study_design_final %in% input$study_design,
+                             as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2]
                              )
   )                           
 
   output$trials <- renderDataTable(
     trials_subset_filtered(), 
-    rownames=TRUE, 
+    rownames=TRUE,
+    colnames = c("Id", "Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "URL", "Treatment", "Outcome"),
     plugins = "ellipsis", 
     options = list(pageLength = 25,
                    columnDefs = list(list(

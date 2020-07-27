@@ -30,20 +30,15 @@ trials_subset <- trials %>%
       number_of_arms_final,
       url,
       corrected_treatment_name,
-      outcome) %>%
-  rename(title = public_title,
-         completion_date = date_primary_completion,
-         study_design = study_design_final,
-         arms = number_of_arms_final,
-         treatment = corrected_treatment_name) 
+      outcome)
 
 expected_enrollment_max <- max(trials_subset$expected_enrollment, na.rm = TRUE)
 study_design_levels <- levels(factor(trials_subset$study_design))
-completion_date_min <- min(as.Date(trials_subset$completion_date), na.rm = TRUE)
-completion_date_max <- max(as.Date(trials_subset$completion_date), na.rm = TRUE)
+completion_date_min <- min(as.Date(trials_subset$date_primary_completion), na.rm = TRUE)
+completion_date_max <- max(as.Date(trials_subset$date_primary_completion), na.rm = TRUE)
 today <- Sys.Date()
 today_plus_one_month <- Sys.Date() %m+% months(1)
-treatments <- trials_subset$treatment %>% 
+treatments <- trials_subset$corrected_treatment_name %>% 
   strsplit(", ") %>% reduce(c) %>% 
   strsplit(" + ", fixed = TRUE) %>% reduce(c) %>% 
   unique() %>% sort()

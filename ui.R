@@ -19,7 +19,7 @@ ui <- fluidPage(
         width=3,
         paste("Data last updated: ", date_data_transfer, sep=""),
         hr(),
-        sliderInput("expected_enrollment", "Expected enrollment at least:", min = 0, max = 1000, step = 1, value = 200),
+        sliderInput("expected_enrollment", "Expected enrollment size at least:", min = 0, max = 1000, step = 1, value = 200),
         hr(),
         selectInput("study_design", "Study design:", choices = study_design_levels, multiple = TRUE, selected = "Randomised"),
         hr(),
