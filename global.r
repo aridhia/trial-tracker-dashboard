@@ -21,7 +21,7 @@ trials <- cbind(id=id, trials)
 trials_subset <- trials %>%
   select(id,
       trial_id,
-      public_title,
+      scientific_title,
       institution,
       date_primary_completion,
       expected_enrollment,

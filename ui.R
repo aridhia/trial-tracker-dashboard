@@ -8,6 +8,7 @@ ui <- fluidPage(
 		    #participant_selection, #cohort_status, #demographics {
 			  white-space: nowrap;
 		    }
+		    .modal-dialog{ width: 80%},
       ")
     )
   ),
