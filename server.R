@@ -58,7 +58,7 @@ server <- function(input, output, session) {
           ),
           column(8,
                  div(tags$b("URL")),
-                 div(tags$a(href=trial$url, trial$url))
+                 div(tags$a(href=trial$url, trial$url, target = "_blank"))
           ), 
         ),
         tags$br(),
