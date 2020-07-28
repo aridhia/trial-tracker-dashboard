@@ -17,11 +17,11 @@ server <- function(input, output, session) {
   output$trials <- renderDataTable(
     trials_subset_filtered(), 
     rownames=TRUE,
-    colnames = c("Id", "Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "URL", "Treatment", "Outcome"),
+    colnames = c("Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "Treatment", "Outcome"),
     plugins = "ellipsis", 
     options = list(pageLength = 25,
                    columnDefs = list(list(
-                     targets = c(1,2,3,4,5,6,7,8,9,10,11,12),
+                     targets = c(1,2,3,4,5,6,7,8,9,10),
                      render = JS("$.fn.dataTable.render.ellipsis( 15, false )")
                    ))), 
     selection = 'single',
