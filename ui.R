@@ -2,12 +2,6 @@ ui <- fluidPage(
   tags$head(
     tags$style(
       HTML("
-        #cohort_status {
-          white-space: nowrap;
-        }
-		    #participant_selection, #cohort_status, #demographics {
-			  white-space: nowrap;
-		    }
 		    .modal-dialog{ width: 80%},
       ")
     )

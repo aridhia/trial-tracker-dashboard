@@ -15,12 +15,8 @@ date_data_transfer <- "2020-07-21"
 
 trials <- get(load("data/dat_processed_and_network.RData"))
 
-id <- rownames(trials)
-trials <- cbind(id=id, trials)
-
 trials_subset <- trials %>%
-  select(id,
-      trial_id,
+  select(trial_id,
       scientific_title,
       institution,
       date_primary_completion,
@@ -28,7 +24,6 @@ trials_subset <- trials %>%
       patient_setting,
       study_design_final,
       number_of_arms_final,
-      url,
       corrected_treatment_name,
       outcome)
 
