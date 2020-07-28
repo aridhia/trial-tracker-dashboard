@@ -3,14 +3,18 @@ server <- function(input, output, session) {
   trials_subset_filtered <- reactive(
     trials_subset %>% filter(expected_enrollment >= input$expected_enrollment,
                              study_design_final %in% input$study_design,
-                             as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2]
+                             as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2],
+                             as.logical(lapply(outcome, outcome_filter_function, input$outcome, "AND")),
+                             as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, "AND"))
                              )
   )
   
   trials_filtered <- reactive(
     trials %>% filter(expected_enrollment >= input$expected_enrollment,
                              study_design_final %in% input$study_design,
-                             as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2]
+                             as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2],
+                             as.logical(lapply(outcome, outcome_filter_function, input$outcome, "AND")),
+                             as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, "AND"))
     )
   )
 
@@ -104,6 +108,41 @@ server <- function(input, output, session) {
           column(3,
                  div(tags$b("Patient Age")),
                  div(trial$age)
+          )
+        ),
+        tags$br(),
+        fluidRow(
+          column(3,
+                 div(tags$b("Therapy Target")),
+                 div(trial$therapy_target)
+          ),
+          column(3,
+                 div(tags$b("Covid-19 Status")),
+                 div(trial$covid19_status)
+          ),
+          column(3,
+                 div(tags$b("Study Design")),
+                 div(trial$study_design_final)
+          ),
+          column(3,
+                 div(tags$b("Blinding")),
+                 div(trial$blinding_final)
+          )
+        ),
+        tags$br(),
+        fluidRow(
+          column(3,
+                 div(tags$b("Treatments")),
+                 div(trial$corrected_treatment_name)
+          ),
+          column(3,
+                 div(tags$b("Phase")),
+                 div(trial$phase)
+          ),
+          	
+          column(6,
+                 div(tags$b("Outcomes")),
+                 div(trial$outcome)
           )
         )
       ),

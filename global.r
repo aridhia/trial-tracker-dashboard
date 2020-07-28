@@ -45,3 +45,30 @@ treatments <- trials_subset$corrected_treatment_name %>%
 outcomes <- trials_subset$outcome %>% 
   strsplit(", ") %>% reduce(c) %>% 
   unique() %>% sort()
+
+outcome_filter_function <- function(entry, outcomes, logic = "AND") {
+  if (is.null(outcomes)) {return(TRUE)}
+  
+  entry_split <- entry %>%
+    strsplit(", ") %>% reduce(c)
+  
+  if (logic == "AND") {
+    return (all(outcomes %in% entry_split))
+  } else if (logic == "OR") {
+    return (any(outcomes %in% entry_split))
+  }
+}
+
+treatment_filter_function <- function(entry, treatments, logic = "AND") {
+  if (is.null(treatments)) {return(TRUE)}
+  
+  entry_split <- entry %>%
+    strsplit(", ") %>% reduce(c) %>% 
+    strsplit(" + ", fixed = TRUE) %>% reduce(c)
+  
+  if (logic == "AND") {
+    return (all(treatments %in% entry_split))
+  } else if (logic == "OR") {
+    return (any(treatments %in% entry_split))
+  }
+}
