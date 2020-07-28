@@ -42,6 +42,18 @@ server <- function(input, output, session) {
                
   
   trialModal <- function(trial) {
+    arms <- tagList()
+    for (n in 1:trial$number_of_arms_final) {
+      arm_column <- paste0("tx", as.character(n), "_category")
+      
+      if (!is.na(trial[[arm_column]])) {
+        arms <- tagAppendChild(arms, column(2, 
+                                       div(tags$b(paste0("Arm ", n))),
+                                       div(trial[[arm_column]])
+        ))
+      }
+    }
+    
     modalDialog(
       title = trial$trial_id,
       fluidPage(
@@ -58,7 +70,7 @@ server <- function(input, output, session) {
           ),
           column(8,
                  div(tags$b("URL")),
-                 div(tags$a(href=trial$url, trial$url))
+                 div(tags$a(href=trial$url,target= "_blank", trial$url))
           ), 
         ),
         tags$br(),
@@ -144,8 +156,14 @@ server <- function(input, output, session) {
                  div(tags$b("Outcomes")),
                  div(trial$outcome)
           )
+        ),
+        tags$br(),
+        fluidRow(
+          div(tags$b("Trial Arms")),
+          arms
         )
       ),
+      
       
       easyClose = TRUE
     )
