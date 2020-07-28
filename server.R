@@ -2,19 +2,19 @@ server <- function(input, output, session) {
                              
   trials_subset_filtered <- reactive(
     trials_subset %>% filter(expected_enrollment >= input$expected_enrollment,
-                             study_design_final %in% input$study_design,
-                             as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2],
-                             as.logical(lapply(outcome, outcome_filter_function, input$outcome, "AND")),
-                             as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, "AND"))
+                             study_design_final %in% input$study_design || input$study_design == "All",
+                             as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2] | !input$completion_date_toggle,
+                             as.logical(lapply(outcome, outcome_filter_function, input$outcome, input$outcome_andor)),
+                             as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, input$treatment_andor))
                              )
   )
   
   trials_filtered <- reactive(
     trials %>% filter(expected_enrollment >= input$expected_enrollment,
-                             study_design_final %in% input$study_design,
-                             as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2],
-                             as.logical(lapply(outcome, outcome_filter_function, input$outcome, "AND")),
-                             as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, "AND"))
+                             study_design_final %in% input$study_design || input$study_design == "All",
+                             as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2] | !input$completion_date_toggle,
+                             as.logical(lapply(outcome, outcome_filter_function, input$outcome, input$outcome_andor)),
+                             as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, input$treatment_andor))
     )
   )
 
