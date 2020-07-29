@@ -172,6 +172,52 @@ server <- function(input, output, session) {
       easyClose = TRUE
     )
     
+    elapsed_months <- function(end_date, start_date) {
+      ed <- as.POSIXlt(end_date)
+      sd <- as.POSIXlt(start_date)
+      12 * (ed$year - sd$year) + (ed$mon - sd$mon)
+    }
+    
+    output$noOfUsers <- renderPlot({
+      more_than_200_users <- trials %>% filter(expected_enrollment > 200)
+      print(max(more_than_200_users$expected_enrollment))
+      ggplot(data=more_than_200_users, aes(expected_enrollment)) + 
+        geom_histogram(bins=12)
+      
+    })
+    
+    
+    output$noOfOutcomes <- renderPlot({
+      counts <- table(Outcome = trials$outcome)
+      counts_dataframe <- as.data.frame(counts)
+      
+      ggplot(data=counts_dataframe, aes(x = Outcome , y=Freq)) +
+        geom_bar(stat='identity', width = 2) +
+        coord_flip()
+      
+    })
+    
+    output$noOfMonths <- renderPlot({
+      trials$no_of_months_untill_readout = elapsed_months(trials$date_primary_completion, Sys.Date())
+      counts <- table(readout_months = trials$no_of_months_untill_readout)
+      counts_dataframe <- as.data.frame(counts)
+      ggplot(data=counts_dataframe, aes(x = readout_months , y=Freq)) +
+        geom_bar(stat='identity', width = 2) +
+        coord_flip() +
+        ggtitle("No. of Trials by Months untill Readout") +
+        ylab("No. of Trials") + xlab("Months untill Readout")
+    })
+    
+    output$trialSeverity <- renderPlot({
+      counts <- table(readout_months = trials$patient_setting)
+      counts_dataframe <- as.data.frame(counts)
+      ggplot(data=counts_dataframe, aes(x = patient_setting , y=Freq)) +
+        geom_bar(stat='identity', width = 2) +
+        coord_flip() +
+        ggtitle("No. of Trials by Patient Setting") +
+        ylab("No. of Trials") + xlab("Months untill Readout")
+    })    
+    
   }
             
 }

@@ -30,6 +30,14 @@ ui <- fluidPage(
       mainPanel(
         dataTableOutput("trials")
       )
+    ),
+    tabPanel("Summary",
+             fluidRow(
+               column(6, plotOutput("noOfMonths")),
+               column(6, plotOutput("noOfUsers"))),
+             # fluidRow(
+             #   column(6, plotOutput("noOfMonths")),
+             #   column(6, plotOutput("noOfUsers")))
     )
   )
 )
