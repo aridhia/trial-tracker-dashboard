@@ -35,9 +35,9 @@ ui <- fluidPage(
              fluidRow(
                column(6, plotOutput("noOfMonths")),
                column(6, plotOutput("noOfUsers"))),
-             # fluidRow(
-             #   column(6, plotOutput("noOfMonths")),
-             #   column(6, plotOutput("noOfUsers")))
+             fluidRow(
+               column(6, plotOutput("noOfOutcomes")),
+               column(6, plotOutput("noOfTreatments")))
     )
   )
 )

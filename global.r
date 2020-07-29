@@ -68,3 +68,45 @@ treatment_filter_function <- function(entry, treatments, logic = "AND") {
     return (any(treatments %in% entry_split))
   }
 }
+
+get_count_of_treatments <- function(){
+  
+  treatment_count_df <- data.frame(treatment=character(), count=integer())
+  
+  for (treatment_item in treatments){
+    counter <- 0
+    for (row in 1:nrow(trials)){
+      if (grepl(treatment_item, trials[row, "corrected_treatment_name"], fixed = TRUE)){
+        counter <- counter + 1
+      }
+    }
+    treatment_count_df <- rbind(treatment_count_df, data.frame(treatment=treatment_item, count=counter))
+    # print(treatment_item)
+    # print(counter)
+  }
+  return(treatment_count_df)
+}
+
+get_count_of_outcomes <- function(){
+  
+  outcomes_count_df <- data.frame(outcomes=character(), count=integer())
+  
+  for (outcomes_item in outcomes){
+    counter <- 0
+    for (row in 1:nrow(trials)){
+      if (grepl(outcomes_item, trials[row, "outcome"], fixed = TRUE)){
+        counter <- counter + 1
+      }
+    }
+    outcomes_count_df <- rbind(outcomes_count_df, data.frame(outcome=outcomes_item, count=counter))
+    # print(outcomes_item)
+    # print(counter)
+  }
+  return(outcomes_count_df)
+}
+
+treatment_count_df <- get_count_of_treatments()
+outcomes_count_df <- get_count_of_outcomes()
+
+print(head(treatment_count_df))
+print(head(outcomes_count_df))

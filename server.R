@@ -171,7 +171,7 @@ server <- function(input, output, session) {
       
       easyClose = TRUE
     )
-    
+  }
     elapsed_months <- function(end_date, start_date) {
       ed <- as.POSIXlt(end_date)
       sd <- as.POSIXlt(start_date)
@@ -182,19 +182,27 @@ server <- function(input, output, session) {
       more_than_200_users <- trials %>% filter(expected_enrollment > 200)
       print(max(more_than_200_users$expected_enrollment))
       ggplot(data=more_than_200_users, aes(expected_enrollment)) + 
-        geom_histogram(bins=12)
+        geom_histogram(bins=12) +
+        ggtitle("Distrubtion of No. Users Per Trial") +
+        ylab("No. of Trials") + xlab("Expected Enrollment Bins")
       
     })
     
     
     output$noOfOutcomes <- renderPlot({
-      counts <- table(Outcome = trials$outcome)
-      counts_dataframe <- as.data.frame(counts)
-      
-      ggplot(data=counts_dataframe, aes(x = Outcome , y=Freq)) +
+      ggplot(data=outcomes_count_df, aes(x = outcome , y=count)) +
         geom_bar(stat='identity', width = 2) +
-        coord_flip()
-      
+        coord_flip() +
+        ggtitle("No. of Trials by Outcome") +
+        ylab("No. of Trials") + xlab("Outcome")
+    })
+    
+    output$noOfTreatments <- renderPlot({
+      ggplot(data=treatment_count_df, aes(x = treatments , y=count)) +
+        geom_bar(stat='identity', width = 2) +
+        coord_flip() + 
+        ggtitle("No. of Trials by Treatment") +
+        ylab("No. of Trials") + xlab("Treatment")
     })
     
     output$noOfMonths <- renderPlot({
@@ -216,8 +224,7 @@ server <- function(input, output, session) {
         coord_flip() +
         ggtitle("No. of Trials by Patient Setting") +
         ylab("No. of Trials") + xlab("Months untill Readout")
+      
     })    
-    
-  }
-            
+
 }
