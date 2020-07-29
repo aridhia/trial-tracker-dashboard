@@ -10,6 +10,7 @@ library(tidyr)
 library(lubridate)
 library(purrr)
 library(stringr)
+library(ggplot2)
 
 date_data_transfer <- "2020-07-21"
 
