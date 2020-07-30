@@ -184,34 +184,37 @@ server <- function(input, output, session) {
     }
     
     output$noOfUsers <- renderPlotly({
-      
       options(scipen=10000)
       more_than_200_users <- trials %>% filter(expected_enrollment >= 200 & expected_enrollment <= 15000)
       ggplotly(
-      ggplot(data=more_than_200_users, aes(x=expected_enrollment)) + 
+      ggplot(data=more_than_200_users, aes(x=expected_enrollment , text = paste(''))) +
         geom_histogram(fill="#3699b1", breaks=seq(200, 15000, by=200)) +
         ggtitle("Distribution of No. Users Per Trial Limits: Between 200 & 15000") +
-        ylab("No. of Trials") + xlab("Expected Enrollment Bins")
+        ylab("No. of Trials") + xlab("Expected Enrollment Bins"),
+      tooltip = c("text")
       )
     })
     
     
+    
     output$noOfOutcomes <- renderPlotly({
       ggplotly(
-      ggplot(data=outcomes_count_df, aes(x = reorder(outcome, count) , y=count)) +
+      ggplot(data=outcomes_count_df, aes(x = reorder(outcome, count) , y=count, text = paste('Count: ', count))) +
         geom_bar(stat='identity', width = 0.5, fill="#3699b1" ) +
         coord_flip() +
         ggtitle("No. of Trials by Outcome (Top 20)") +
-        ylab("No. of Trials") + xlab("Outcome"))
+        ylab("No. of Trials") + xlab("Outcome"),
+      tooltip = c("text"))
     })
     
     output$noOfTreatments <- renderPlotly({
       ggplotly(
-      ggplot(data=treatment_count_df, aes(x = reorder(treatment, count) , y=count)) +
+      ggplot(data=treatment_count_df, aes(x = reorder(treatment, count) , y=count , text = paste('Count: ', count))) +
         geom_bar(stat='identity', width=0.5, fill="#3699b1") +
         coord_flip() + 
         ggtitle("No. of Trials by Treatment (Top 20)") +
-        ylab("No. of Trials") + xlab("Treatment"))
+        ylab("No. of Trials") + xlab("Treatment"),
+      tooltip = c("text"))
     })
     
     output$noOfMonths <- renderPlotly({
