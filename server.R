@@ -45,7 +45,7 @@ server <- function(input, output, session) {
     # print(trial)
     arms <- tagList()
     if (!is.na(trial$number_of_arms_final)) {
-      for (n in 1:trial$number_of_arms_final) {
+      for (n in 1:min(trial$number_of_arms_final,7)) {
         arm_column <- paste0("tx", as.character(n), "_category")
         
         if (!is.na(trial[[arm_column]])) {
