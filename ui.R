@@ -8,7 +8,7 @@ ui <- fluidPage(
   ),
   theme = shinytheme("spacelab"),
   navbarPage("COVID-19 TRIAL DASHBOARD",
-    tabPanel("Trials",
+    tabPanel("Trial Selection",
       sidebarPanel(
         useShinyjs(),
         width=3,

@@ -37,10 +37,12 @@ today <- Sys.Date()
 today_plus_one_month <- Sys.Date() %m+% months(1)
 treatments <- trials_subset$corrected_treatment_name %>% 
   strsplit(", ") %>% reduce(c) %>% 
-  strsplit(" + ", fixed = TRUE) %>% reduce(c) %>% 
+  strsplit(" + ", fixed = TRUE) %>% reduce(c) %>%
+  trimws() %>%
   unique() %>% sort()
 outcomes <- trials_subset$outcome %>% 
   strsplit(", ") %>% reduce(c) %>% 
+  trimws() %>%
   unique() %>% sort()
 
 outcome_filter_function <- function(entry, outcomes, logic = "AND") {
