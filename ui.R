@@ -33,11 +33,16 @@ ui <- fluidPage(
     ),
     tabPanel("Summary",
              fluidRow(
-               column(6, plotOutput("noOfMonths")),
-               column(6, plotOutput("noOfUsers"))),
+               column(6, textOutput("completedTrials")),
+               column(6, )),
+             hr(),
              fluidRow(
-               column(6, plotOutput("noOfOutcomes")),
-               column(6, plotOutput("noOfTreatments")))
+               column(6, plotlyOutput("noOfMonths")),
+               column(6, plotlyOutput("noOfUsers"))),
+             hr(),
+             fluidRow(
+               column(6, plotlyOutput("noOfOutcomes")),
+               column(6, plotlyOutput("noOfTreatments")))
     )
   )
 )

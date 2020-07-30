@@ -11,6 +11,7 @@ library(lubridate)
 library(purrr)
 library(stringr)
 library(ggplot2)
+library(plotly)
 
 date_data_transfer <- "2020-07-21"
 
@@ -84,7 +85,9 @@ get_count_of_treatments <- function(){
     # print(treatment_item)
     # print(counter)
   }
-  return(treatment_count_df)
+  treatment_count_df_sorted <- treatment_count_df[order(-treatment_count_df$count),]
+  treatment_count_df_sorted <- head(treatment_count_df_sorted, 20)
+  return(treatment_count_df_sorted)
 }
 
 get_count_of_outcomes <- function(){
@@ -102,11 +105,18 @@ get_count_of_outcomes <- function(){
     # print(outcomes_item)
     # print(counter)
   }
-  return(outcomes_count_df)
+  outcomes_count_df_sorted <- outcomes_count_df[order(-outcomes_count_df$count),]
+  outcomes_count_df_sorted <- head(outcomes_count_df_sorted, 20)
+  return(outcomes_count_df_sorted)
+}
+
+get_completed_trials <- function(){
+  counts <- table(status = trials$recruitment_status)
+  counts_dataframe <- as.data.frame(counts)
+  completed <- subset(counts_dataframe, (status == 'Completed'), select=c(Freq))
+  return(completed[1,1])
 }
 
 treatment_count_df <- get_count_of_treatments()
 outcomes_count_df <- get_count_of_outcomes()
-
-print(head(treatment_count_df))
-print(head(outcomes_count_df))
+completed_trials = get_completed_trials()

@@ -173,58 +173,83 @@ server <- function(input, output, session) {
     )
   }
     elapsed_months <- function(end_date, start_date) {
+      final_months <- 0
       ed <- as.POSIXlt(end_date)
       sd <- as.POSIXlt(start_date)
-      12 * (ed$year - sd$year) + (ed$mon - sd$mon)
+      final_months <- 12 * (ed$year - sd$year) + (ed$mon - sd$mon)
+      # if (final_months >= 6 && final_months <= 12) {
+      #   final_months <- "7-12"
+      # }
+      return(final_months)
     }
     
-    output$noOfUsers <- renderPlot({
-      more_than_200_users <- trials %>% filter(expected_enrollment > 200)
-      print(max(more_than_200_users$expected_enrollment))
-      ggplot(data=more_than_200_users, aes(expected_enrollment)) + 
-        geom_histogram(bins=12) +
-        ggtitle("Distrubtion of No. Users Per Trial") +
+    output$noOfUsers <- renderPlotly({
+      
+      options(scipen=10000)
+      more_than_200_users <- trials %>% filter(expected_enrollment > 200 & expected_enrollment <= 50000)
+      ggplotly(
+      ggplot(data=more_than_200_users, aes(x=expected_enrollment)) + 
+        geom_histogram(fill="#3699b1", breaks=c(200, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000)) +
+        ggtitle("Distrubtion of No. Users Per Trial Limits: Between 200 & 50000") +
         ylab("No. of Trials") + xlab("Expected Enrollment Bins")
-      
+      )
     })
     
     
-    output$noOfOutcomes <- renderPlot({
-      ggplot(data=outcomes_count_df, aes(x = outcome , y=count)) +
-        geom_bar(stat='identity', width = 2) +
+    output$noOfOutcomes <- renderPlotly({
+      ggplotly(
+      ggplot(data=outcomes_count_df, aes(x = reorder(outcome, count) , y=count)) +
+        geom_bar(stat='identity', width = 0.5, fill="#3699b1" ) +
         coord_flip() +
-        ggtitle("No. of Trials by Outcome") +
-        ylab("No. of Trials") + xlab("Outcome")
+        ggtitle("No. of Trials by Outcome (Top 20)") +
+        ylab("No. of Trials") + xlab("Outcome"))
     })
     
-    output$noOfTreatments <- renderPlot({
-      ggplot(data=treatment_count_df, aes(x = treatments , y=count)) +
-        geom_bar(stat='identity', width = 2) +
+    output$noOfTreatments <- renderPlotly({
+      ggplotly(
+      ggplot(data=treatment_count_df, aes(x = reorder(treatment, count) , y=count)) +
+        geom_bar(stat='identity', width=0.5, fill="#3699b1") +
         coord_flip() + 
-        ggtitle("No. of Trials by Treatment") +
-        ylab("No. of Trials") + xlab("Treatment")
+        ggtitle("No. of Trials by Treatment (Top 20)") +
+        ylab("No. of Trials") + xlab("Treatment"))
     })
     
-    output$noOfMonths <- renderPlot({
-      trials$no_of_months_untill_readout = elapsed_months(trials$date_primary_completion, Sys.Date())
-      counts <- table(readout_months = trials$no_of_months_untill_readout)
-      counts_dataframe <- as.data.frame(counts)
-      ggplot(data=counts_dataframe, aes(x = readout_months , y=Freq)) +
-        geom_bar(stat='identity', width = 2) +
-        coord_flip() +
-        ggtitle("No. of Trials by Months untill Readout") +
-        ylab("No. of Trials") + xlab("Months untill Readout")
-    })
-    
-    output$trialSeverity <- renderPlot({
-      counts <- table(readout_months = trials$patient_setting)
-      counts_dataframe <- as.data.frame(counts)
-      ggplot(data=counts_dataframe, aes(x = patient_setting , y=Freq)) +
-        geom_bar(stat='identity', width = 2) +
-        coord_flip() +
-        ggtitle("No. of Trials by Patient Setting") +
-        ylab("No. of Trials") + xlab("Months untill Readout")
+    output$noOfMonths <- renderPlotly({
+      # Hold the 0 - 6 Months DataFrame
+      trials$no_of_months_until_readout = elapsed_months(trials$date_primary_completion, Sys.Date())
+      # trials %>% rowwise() %>% mutate(no_of_months_until_readout = elapsed_months(trials$date_primary_completion, Sys.Date()))
+      # 
+      # 
+      # no_of_months_string <- trials %>% filter(is.character(no_of_months_until_readout) == TRUE)
+      # no_of_months_int <- trials %>% filter(is.character(no_of_months_until_readout) == FALSE)
+      # 
+      no_of_months <- trials %>% filter(no_of_months_until_readout <= 12 & no_of_months_until_readout >= 1)
+      # no_of_months <- rbind(no_of_months_int, no_of_months_string)
       
-    })    
+    
+      counts <- table(readout_months = no_of_months$no_of_months_until_readout)
+      counts_dataframe <- as.data.frame(counts)
+      ggplotly(
+      ggplot(data=counts_dataframe, aes(x = readout_months , y=Freq)) +
+        geom_bar(stat='identity', width = 0.5, fill="#3699b1") +
+        ggtitle("No. of Trials by Months until Completion") +
+        ylab("No. of Trials") + xlab("Months until Completion"))
+    })
+    
+    output$completedTrials <- renderText({
+      paste("Number of Completed Trials: ", completed_trials)
+    }
+    )
+    
+    # output$trialSeverity <- renderPlot({
+    #   counts <- table(readout_months = trials$patient_setting)
+    #   counts_dataframe <- as.data.frame(counts)
+    #   ggplot(data=counts_dataframe, aes(x = patient_setting , y=Freq)) +
+    #     geom_bar(stat='identity', width = 2) +
+    #     coord_flip() +
+    #     ggtitle("No. of Trials by Patient Setting") +
+    #     ylab("No. of Trials") + xlab("Months untill Readout")
+    #   
+    # })    
 
 }
