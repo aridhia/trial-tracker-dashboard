@@ -186,10 +186,10 @@ server <- function(input, output, session) {
     output$noOfUsers <- renderPlotly({
       
       options(scipen=10000)
-      more_than_200_users <- trials %>% filter(expected_enrollment > 200 & expected_enrollment <= 15000)
+      more_than_200_users <- trials %>% filter(expected_enrollment >= 200 & expected_enrollment <= 15000)
       ggplotly(
       ggplot(data=more_than_200_users, aes(x=expected_enrollment)) + 
-        geom_histogram(fill="#3699b1", breaks=seq(0, 15000, by=200)) +
+        geom_histogram(fill="#3699b1", breaks=seq(200, 15000, by=200)) +
         ggtitle("Distribution of No. Users Per Trial Limits: Between 200 & 15000") +
         ylab("No. of Trials") + xlab("Expected Enrollment Bins")
       )
