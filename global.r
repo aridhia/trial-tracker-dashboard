@@ -13,9 +13,13 @@ library(stringr)
 library(ggplot2)
 library(plotly)
 
-date_data_transfer <- "2020-07-21"
+date_data_transfer <- "2020-07-29"
 
-trials <- get(load("data/dat_processed_and_network.RData"))
+trials_original <- get(load("data/dat_processed_and_network.RData"))
+
+trials <- trials_original %>%
+  select(-c(state_name, state_lon, state_lat, country_name, iso3_code)) %>%
+  unique()
 
 trials_subset <- trials %>%
   select(trial_id,
