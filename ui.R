@@ -15,6 +15,7 @@ ui <- fluidPage(
         paste("Data last updated: ", date_data_transfer, sep=""),
         hr(),
         sliderInput("expected_enrollment", "Expected enrollment size at least:", min = 0, max = 4000, step = 100, value = 200),
+        checkboxInput("enrollment_na_show", label="Display trials Without expected enrollment", value = FALSE),
         hr(),
         selectInput("study_design", "Study design:", choices = append(study_design_levels, "All", after=0), selected = "All"),
         hr(),
