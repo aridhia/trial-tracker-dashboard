@@ -88,8 +88,6 @@ get_count_of_treatments <- function(){
       }
     }
     treatment_count_df <- rbind(treatment_count_df, data.frame(treatment=treatment_item, count=counter))
-    # print(treatment_item)
-    # print(counter)
   }
   treatment_count_df_sorted <- treatment_count_df[order(-treatment_count_df$count),]
   treatment_count_df_sorted <- head(treatment_count_df_sorted, 20)
@@ -108,8 +106,6 @@ get_count_of_outcomes <- function(){
       }
     }
     outcomes_count_df <- rbind(outcomes_count_df, data.frame(outcome=outcomes_item, count=counter))
-    # print(outcomes_item)
-    # print(counter)
   }
   outcomes_count_df_sorted <- outcomes_count_df[order(-outcomes_count_df$count),]
   outcomes_count_df_sorted <- head(outcomes_count_df_sorted, 20)

@@ -186,73 +186,76 @@ server <- function(input, output, session) {
     output$noOfUsers <- renderPlotly({
       options(scipen=10000)
       more_than_200_users <- trials %>% filter(expected_enrollment >= 200 & expected_enrollment <= 15000)
-      ggplotly(
-      ggplot(data=more_than_200_users, aes(x=expected_enrollment , text = paste(''))) +
-        geom_histogram(fill="#3699b1", breaks=seq(200, 15000, by=200)) +
-        ggtitle("Distribution of No. Users Per Trial Limits: Between 200 & 15000") +
-        ylab("No. of Trials") + xlab("Expected Enrollment Bins"),
-      tooltip = c("text")
+      fig <- plot_ly(more_than_200_users,
+                     x = ~expected_enrollment,
+                     type = "histogram",
+                     marker=list(color=c('rgb(54, 153, 177)'))
       )
+      
+      fig <- fig %>% layout(title = "Distribution of No. Users Per Trial Limits: Between 200 & 15000",
+                            xaxis = list(title = "Outcome"),
+                            yaxis = list(title = "Expected Enrollment Bins"))
     })
     
     
     
     output$noOfOutcomes <- renderPlotly({
-      ggplotly(
-      ggplot(data=outcomes_count_df, aes(x = reorder(outcome, count) , y=count, text = paste('Count: ', count))) +
-        geom_bar(stat='identity', width = 0.5, fill="#3699b1" ) +
-        coord_flip() +
-        ggtitle("No. of Trials by Outcome (Top 20)") +
-        ylab("No. of Trials") + xlab("Outcome"),
-      tooltip = c("text"))
+      fig <- plot_ly(outcomes_count_df,
+                     y = ~reorder(outcome, count),
+                     x = ~count,
+                     orientation = 'h',
+                     type = "bar",
+                     marker=list(color=c('rgb(54, 153, 177)')),
+                     hoverinfo = 'text',
+                     text = ~paste('</br> No. of Trials: ', count)
+      )
+      
+      fig <- fig %>% layout(title = "No. of Trials by Outcome (Top 20)",
+                            xaxis = list(title = "Outcome"),
+                            yaxis = list(title = "No. of Trials"))
     })
     
     output$noOfTreatments <- renderPlotly({
-      ggplotly(
-      ggplot(data=treatment_count_df, aes(x = reorder(treatment, count) , y=count , text = paste('Count: ', count))) +
-        geom_bar(stat='identity', width=0.5, fill="#3699b1") +
-        coord_flip() + 
-        ggtitle("No. of Trials by Treatment (Top 20)") +
-        ylab("No. of Trials") + xlab("Treatment"),
-      tooltip = c("text"))
+      fig <- plot_ly(treatment_count_df,
+                     y = ~reorder(treatment, count),
+                     x = ~count,
+                     orientation = 'h',
+                     type = "bar",
+                     marker=list(color=c('rgb(54, 153, 177)')),
+                     hoverinfo = 'text',
+                     text = ~paste('</br> No. of Trials: ', count)
+      )
+      
+      fig <- fig %>% layout(title = "No. of Trials by Treatment (Top 20)",
+                            xaxis = list(title = "Treatment"),
+                            yaxis = list(title = "No. of Trials"))
     })
     
+  
     output$noOfMonths <- renderPlotly({
-      # Hold the 0 - 6 Months DataFrame
       trials$no_of_months_until_readout = elapsed_months(trials$date_primary_completion, Sys.Date())
-      # trials %>% rowwise() %>% mutate(no_of_months_until_readout = elapsed_months(trials$date_primary_completion, Sys.Date()))
-      # 
-      # 
-      # no_of_months_string <- trials %>% filter(is.character(no_of_months_until_readout) == TRUE)
-      # no_of_months_int <- trials %>% filter(is.character(no_of_months_until_readout) == FALSE)
-      # 
       no_of_months <- trials %>% filter(no_of_months_until_readout <= 12 & no_of_months_until_readout >= 1)
-      # no_of_months <- rbind(no_of_months_int, no_of_months_string)
-      
-    
       counts <- table(readout_months = no_of_months$no_of_months_until_readout)
       counts_dataframe <- as.data.frame(counts)
-      ggplotly(
-      ggplot(data=counts_dataframe, aes(x = readout_months , y=Freq)) +
-        geom_bar(stat='identity', width = 0.5, fill="#3699b1") +
-        ggtitle("No. of Trials by Months until Completion") +
-        ylab("No. of Trials") + xlab("Months until Completion"))
+
+      fig <- plot_ly(counts_dataframe,
+        x = ~readout_months,
+        y = ~Freq,
+        type = "bar",
+        marker=list(color=c('rgb(54, 153, 177)')),
+        hoverinfo = 'text',
+        text = ~paste('</br> No. of Trials: ', Freq)
+      )
+      
+      fig <- fig %>% layout(title = "No. of Trials by Months until Completion",
+                           xaxis = list(title = "Months"),
+                           yaxis = list(title = "No. of Trials"))
     })
+    
     
     output$completedTrials <- renderText({
       paste("Number of Completed Trials: ", completed_trials)
     }
     )
-    
-    # output$trialSeverity <- renderPlot({
-    #   counts <- table(readout_months = trials$patient_setting)
-    #   counts_dataframe <- as.data.frame(counts)
-    #   ggplot(data=counts_dataframe, aes(x = patient_setting , y=Freq)) +
-    #     geom_bar(stat='identity', width = 2) +
-    #     coord_flip() +
-    #     ggtitle("No. of Trials by Patient Setting") +
-    #     ylab("No. of Trials") + xlab("Months untill Readout")
-    #   
-    # })    
 
 }
