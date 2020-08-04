@@ -1,6 +1,5 @@
 # Introduction
-Test Push 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+A triage tool for clinical trials of interest. Intermediary between feeds of clinical trial metadata and a CRM-like system to follow up with individual trials. 
 
 # Getting Started
 TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
