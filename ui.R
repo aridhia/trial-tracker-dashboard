@@ -2,7 +2,13 @@ ui <- fluidPage(
   tags$head(
     tags$style(
       HTML("
-		    .modal-dialog{ width: 80%},
+		    .modal-dialog{ width: 80%}
+		    .svg-container {
+		    margin-top:40px !important;
+		    }
+		    .modebar-container {
+		    top:-30px !important;
+		    }
       ")
     )
   ),
