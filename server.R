@@ -32,16 +32,34 @@ server <- function(input, output, session) {
     class = "display nowrap"
   )
   
+  currentRow <- reactiveVal(NULL)
+  modal_fade <- reactiveVal(TRUE)
+  
   observeEvent(input$trials_rows_selected, {
+    modal_fade(TRUE)
     if (input$trials_rows_selected) {
-      trial <- trials_filtered()[input$trials_rows_selected,]
-      # print(trial)
-      showModal(trialModal(trial))
+      if (!is.null(currentRow()) && currentRow() <= length(input$trials_rows_all) && input$trials_rows_all[[currentRow()]] == input$trials_rows_selected) {
+        trial <- trials_filtered()[input$trials_rows_selected,]
+        showModal(trialModal(trial, fade=modal_fade()))
+        modal_fade(FALSE)
+      } else {
+        currentRow( match(c(input$trials_rows_selected), input$trials_rows_all) )
+      }
     }
+  })
+  
+  
+  observeEvent(currentRow(), {
+    shinyjs::runjs("modal_scroll_y = $('#shiny-modal')[0].scrollTop")
+    trial <- trials_filtered()[input$trials_rows_all[[currentRow()]],]
+    # print(trial)
+    showModal(trialModal(trial, fade=modal_fade()))
+    shinyjs::runjs("$('#shiny-modal')[0].scrollTop = modal_scroll_y")
+    modal_fade(FALSE)
   })
                
   
-  trialModal <- function(trial) {
+  trialModal <- function(trial, fade) {
     # print(trial)
     arms <- tagList()
     if (!is.na(trial$number_of_arms_final)) {
@@ -168,10 +186,42 @@ server <- function(input, output, session) {
         )
       ),
       
-      
-      easyClose = TRUE
+      footer = fluidRow(
+        actionButton("modal_prev","Prev"),
+        actionButton("modal_next","Next"),
+        modalButton("Dismiss")
+      ),
+      easyClose = TRUE,
+      fade = fade
     )
   }
+  
+  observe({
+    shinyjs::toggleState("modal_prev", currentRow() != 1)
+  })
+  
+  observe({
+    shinyjs::toggleState("modal_next", currentRow() != nrow(trials_filtered()))
+  })
+  
+  observe({
+    input$trials_rows_selected
+    shinyjs::toggleState("modal_prev", currentRow() != 1)
+  })
+  
+  observe({
+    input$trials_rows_selected
+    shinyjs::toggleState("modal_next", currentRow() != nrow(trials_filtered()))
+  })
+  
+  observeEvent(input$modal_prev,{
+    currentRow( currentRow() - 1 )
+  })
+  
+  observeEvent(input$modal_next,{
+    currentRow( currentRow() + 1 )
+  })
+  
     elapsed_months <- function(end_date, start_date) {
       final_months <- 0
       ed <- as.POSIXlt(end_date)
