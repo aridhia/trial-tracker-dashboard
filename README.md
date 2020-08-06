@@ -1,20 +1,36 @@
 # Introduction
-A triage tool for clinical trials of interest. Intermediary between feeds of clinical trial metadata and a CRM-like system to follow up with individual trials. 
+A triage tool for clinical trials of interest. Intermediary between feeds of clinical trial metadata and a CRM-like system to follow up with individual trials.
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+# Development TODO List
+Check out the Cytel Github in a parallel a folder.
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+- Script to: 
+    - Extract the main table from the RData file to CSV.
+    - Load into a Staging table in Postgres.
+        Replace any prev staged data.
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+- Data Model for the app.
+    - Main trial table.
+    - Reviews table.
+        - source
+        - trial_id
+        - flag (For inclusion)
+        - Rating (0-10)
+        - Note
+        - created_date
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+- Script to:
+    - Load from staging to the main trials table.
+        - Append new records.
+        - Add date_created and source columns 
+
+- A Database view of the latest trials by source and trial_id 
+- A Database view of the the latest reviews by source and trial_id 
+- A Database view combining the latest trials and reviews.
+- When you create a new reviews, app should prepopulate based on the old review (if any).  This review would then be submitted as a new record.
+
+## Scripts
+- SQL Script for the Data modelling.
+- R script for staging.
+- R script for loading.
+
