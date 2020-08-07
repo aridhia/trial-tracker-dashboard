@@ -1,10 +1,10 @@
-DROP DATABASE covid_trial_tracker;
+DROP DATABASE IF EXISTS covid_trial_tracker;
 
 CREATE DATABASE covid_trial_tracker;
 
 \c covid_trial_tracker
 
-CREATE TABLE staging_trials (
+CREATE TABLE IF NOT EXISTS staging_trials (
   id                       VARCHAR(200) PRIMARY KEY,
   source_registry          VARCHAR(200),
   trial_id                 VARCHAR(200),
@@ -43,7 +43,7 @@ CREATE TABLE staging_trials (
   outcome                  VARCHAR(200)
 ); 
 
-CREATE TABLE trials (
+CREATE TABLE IF NOT EXISTS trials (
   id                       INTEGER PRIMARY KEY,
   source_registry          VARCHAR(200),
   trial_id                 VARCHAR(200),
@@ -84,7 +84,7 @@ CREATE TABLE trials (
   date_created             DATE
 ); 
 
-CREATE TABLE reviews (
+CREATE TABLE IF NOT EXISTS reviews (
   flagging_id              INTEGER PRIMARY KEY,
   trial_id                 VARCHAR(200),
   flag                     BOOLEAN,
