@@ -73,17 +73,22 @@ if (!file.exists(latest_rdata_file)) {
 
             # Read in the expected metadata
             expected_dictionary <- fromJSON('./scripts/cytel/dat.json')
+            # TODO - dat.json should have `type` in generic/FAIR controlled vocabulary 
+            #        and then convert to R type names
             expected_fields = expected_dictionary$fields
 
             df_dat <- get(df_dat_name)
 
             # Does the metadata match?
-            name_mismatch <- length(setdiff(colnames(df_dat), expected_fields$name))
-            type_mismatch <- length(setdiff(sapply(df_dat, typeof), expected_fields$type))
-            if (name_mismatch > 0) {
-                message(paste0('Validation of names failed: ', name_mismatch, ' mismatch(es)'), echo=FALSE)
-            } else if (type_mismatch > 0) {
-                message(paste0('Validation of types failed: ', type_mismatch, ' mismatch(es)'), echo=FALSE)
+            found_names <- as.vector(colnames(df_dat))
+            expected_names <- expected_fields$name
+            found_types <- as.vector(sapply(df_dat, typeof))
+            expected_types <- expected_fields$type
+
+            if (!all(found_names == expected_names)) {
+                message(paste0('Validation of names failed: ', found_names[found_names != expected_names]), echo=FALSE)
+            } else if (!all(found_types == expected_types)) {
+                message(paste0('Validation of types failed: ', found_names[found_types != expected_types]), echo=FALSE)
             } else {
                 # Check database connection and table exist
                 message('Testing database connection')
