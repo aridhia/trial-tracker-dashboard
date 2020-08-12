@@ -1,7 +1,26 @@
 # Introduction
+
 A triage tool for clinical trials of interest. Intermediary between feeds of clinical trial metadata and a CRM-like system to follow up with individual trials.
 
+The purpose of this application is to help a team screen clinical trials by reviewing metadata. Screening is supported in a number of ways:
+
+
+
+This app was developed by as part of the COVID-19 Workbench technology programme.
+
+## Database
+
+Clinical trial data is loaded into a PostgreSQL database. When running standalone, this should be called `tracker`.
+
+
+
+## Staging data - Cytel
+
+
+
+
 # Development TODO List
+
 Check out the Cytel Github in a parallel a folder.
 
 - Script to: 

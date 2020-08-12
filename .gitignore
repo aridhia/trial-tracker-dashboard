@@ -1,4 +1,7 @@
-  
+# applications specific
+archive
+*.log
+
 # History files
 .Rhistory
 .Rapp.history
