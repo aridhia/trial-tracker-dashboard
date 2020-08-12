@@ -33,7 +33,16 @@ And views the show the latest values from the main tables
 
 The Cytel tracker data is provided in an .RData file in a parallel folder. This needs to be staged at regular intervals to update the main database.
 
-1. Staging
+### Pre-requistes
+
+The [ELT](https://en.wikipedia.org/wiki/Extract,_load,_transform) scripts for the Cytel tracker data require:
+
+- R 3.6.3
+- R DBI
+- R PostgreSQL
+- R loggit
+
+### Staging
 
 The Cytel data is staged to the database table `staging_trials` using the script [`scripts/cytel/staging.R`](./scripts/cytel/staging.R):
 
@@ -42,9 +51,13 @@ Rscript scripts/cytel/staging.R
 ```
 Incoming files are copied to the `archive` folder, and given name with the patter `cytel-<md5sum>.RData` - where `md5sum` is the md5sum of the original file.
 
-2. Loading
+During the staging process in-bound data is validated against a data dictionary [`dat.json`](./scripts/cytel/dat.json) that contains information on names and types of inbound fields.
+
+### Loading
 
 The staged data is then appended to the main `trials` table with the source `cytel` and a timestamp.
+
+TODO
 
 ## Shiny application
 
