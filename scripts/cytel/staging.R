@@ -27,7 +27,7 @@ archive_folder      <- './archive'
 log_file            <- paste0('./archive/cytel-log-', format(Sys.time(), '%Y%m%d-%H%M%S'), '.log')
 tracker_db_host     <- 'localhost'
 tracker_db_name     <- 'covid_trial_tracker'
-tracker_db_tbl      <- 'staging_trials'
+tracker_db_tbl      <- 'trk_staging_trials'
 
 
 set_logfile(log_file)

@@ -11,7 +11,7 @@ This app was developed by as part of the COVID-19 Workbench technology programme
 
 Clinical trial data is loaded into a PostgreSQL database. When running standalone, this should be called `tracker`. Assuming the database exists and the user can create tables etc:
 ```sh
-psql tracker < script/data_model.sql
+psql tracker < scripts/data_model/data_model.sql
 ```
 
 Staging tables, designed to be overwritten:
