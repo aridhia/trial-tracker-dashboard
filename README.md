@@ -35,9 +35,17 @@ The Cytel tracker data is provided in an .RData file in a parallel folder. This 
 
 1. Staging
 
-The Cytel data is staged to the database table `staging_trials` using the script [`scripts/cytel/staging.R`](./scripts/cytel/staging.R). 
+The Cytel data is staged to the database table `staging_trials` using the script [`scripts/cytel/staging.R`](./scripts/cytel/staging.R):
+
+```sh
+Rscript scripts/cytel/staging.R
+```
+Incoming files are copied to the `archive` folder, and given name with the patter `cytel-<md5sum>.RData` - where `md5sum` is the md5sum of the original file.
 
 2. Loading
 
 The staged data is then appended to the main `trials` table with the source `cytel` and a timestamp.
 
+## Shiny application
+
+TODO
