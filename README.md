@@ -1,55 +1,43 @@
 # Introduction
 
-A triage tool for clinical trials of interest. Intermediary between feeds of clinical trial metadata and a CRM-like system to follow up with individual trials.
+A triage tool for clinical trials of interest. Intermediary between feeds of clinical trial metadata and a CRM-like system to follow up with individual trials. The purpose of this application is to help a team screen clinical trials by reviewing metadata. Screening is supported in a number of ways:
 
-The purpose of this application is to help a team screen clinical trials by reviewing metadata. Screening is supported in a number of ways:
-
-
+- Filtering trials by their parameters
+- User or scripted flags on trials of interest
 
 This app was developed by as part of the COVID-19 Workbench technology programme.
 
 ## Database
 
-Clinical trial data is loaded into a PostgreSQL database. When running standalone, this should be called `tracker`.
+Clinical trial data is loaded into a PostgreSQL database. When running standalone, this should be called `tracker`. Assuming the database exists and the user can create tables etc:
+```sh
+psql tracker < script/data_model.sql
+```
 
+Staging tables, designed to be overwritten:
 
+- staging_trials
+
+Main tables designed to be appended to (multiple points in time):
+
+- trials
+- reviews
+
+And views the show the latest values from the main tables 
+
+- trials_view
+- review_view
+- combined_view
 
 ## Staging data - Cytel
 
+The Cytel tracker data is provided in an .RData file in a parallel folder. This needs to be staged at regular intervals to update the main database.
 
+1. Staging
 
+The Cytel data is staged to the database table `staging_trials` using the script [`scripts/cytel/staging.R`](./scripts/cytel/staging.R). 
 
-# Development TODO List
+2. Loading
 
-Check out the Cytel Github in a parallel a folder.
-
-- Script to: 
-    - Extract the main table from the RData file to CSV.
-    - Load into a Staging table in Postgres.
-        Replace any prev staged data.
-
-- Data Model for the app.
-    - Main trial table.
-    - Reviews table.
-        - source
-        - trial_id
-        - flag (For inclusion)
-        - Rating (0-10)
-        - Note
-        - created_date
-
-- Script to:
-    - Load from staging to the main trials table.
-        - Append new records.
-        - Add date_created and source columns 
-
-- A Database view of the latest trials by source and trial_id 
-- A Database view of the the latest reviews by source and trial_id 
-- A Database view combining the latest trials and reviews.
-- When you create a new reviews, app should prepopulate based on the old review (if any).  This review would then be submitted as a new record.
-
-## Scripts
-- SQL Script for the Data modelling.
-- R script for staging.
-- R script for loading.
+The staged data is then appended to the main `trials` table with the source `cytel` and a timestamp.
 
