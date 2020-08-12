@@ -1,4 +1,10 @@
-CREATE TABLE staging_trials (
+DROP DATABASE IF EXISTS covid_trial_tracker;
+
+CREATE DATABASE covid_trial_tracker;
+
+\c covid_trial_tracker
+
+CREATE TABLE IF NOT EXISTS staging_trials (
   id                       VARCHAR(200) PRIMARY KEY,
   source_registry          VARCHAR(200),
   trial_id                 VARCHAR(200),
@@ -37,7 +43,7 @@ CREATE TABLE staging_trials (
   outcome                  VARCHAR(200)
 ); 
 
-CREATE TABLE trials (
+CREATE TABLE IF NOT EXISTS trials (
   id                       INTEGER PRIMARY KEY,
   source_registry          VARCHAR(200),
   trial_id                 VARCHAR(200),
@@ -78,9 +84,9 @@ CREATE TABLE trials (
   date_created             DATE
 ); 
 
-CREATE TABLE reviews (
-  flagging_id              INTEGER,
-  trial_id                 INTEGER,
+CREATE TABLE IF NOT EXISTS reviews (
+  flagging_id              INTEGER PRIMARY KEY,
+  trial_id                 VARCHAR(200),
   flag                     BOOLEAN,
   rating                   INTEGER,
   user_submitted           VARCHAR(200),
@@ -91,21 +97,26 @@ CREATE TABLE reviews (
 
 CREATE VIEW trials_view AS 
 SELECT * FROM trials
-WHERE date_created = MAX(date_created) and source = "Cytel";
+WHERE source = 'Cytel'
+GROUP BY id
+HAVING date_created = MAX(date_created);
 -- UNION
 -- SELECT * FROM trials
--- WHERE date_created = MAX(date_created) and source = "source_2"
+-- WHERE source = 'source_2'
+-- GROUP BY id
+-- HAVING date_created = MAX(date_created);
 
 CREATE VIEW review_view AS 
 SELECT * FROM reviews
-WHERE date_created = MAX(date_created) and source = "Cytel";
+WHERE source = 'Cytel'
+GROUP BY flagging_id
+HAVING date_created = MAX(date_created);
 -- UNION
--- SELECT * FROM trials
--- WHERE date_created = MAX(date_created) and source = "source_2"
+-- SELECT * FROM reviews
+-- WHERE source = 'source_2'
+-- GROUP BY flagging_id
+-- HAVING date_created = MAX(date_created);
 
 CREATE VIEW combined_view AS 
-SELECT * FROM trials_view t
- LEFT JOIN review_view r where t.trial_id = r.trial_id AND t.source = r.source;
-
-
-
+SELECT t.*, r.flagging_id, r.flag, r.rating, r.user_submitted, r.source as review_source, r.note, r.date_created AS review_date_created FROM trials_view t
+ LEFT JOIN review_view r ON t.trial_id = r.trial_id AND t.source = r.source;
