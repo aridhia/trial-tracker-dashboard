@@ -26,7 +26,7 @@ latest_rdata_file   <- '../COVID-19-Clinical-trial-tracker/dat_processed_and_net
 archive_folder      <- './archive'
 log_file            <- paste0('./archive/cytel-log-', format(Sys.time(), '%Y%m%d-%H%M%S'), '.log')
 tracker_db_host     <- 'localhost'
-tracker_db_name     <- 'tracker'
+tracker_db_name     <- 'covid_trial_tracker'
 tracker_db_tbl      <- 'staging_trials'
 
 
@@ -89,7 +89,7 @@ if (!file.exists(latest_rdata_file)) {
                 message('Testing database connection')
  
                 con <- dbConnect(RPostgres::Postgres(), dbname=tracker_db_name, host=tracker_db_host)
-                if (!is.element('staging_trials', dbListTables(con))) {
+                if (!is.element(tracker_db_tbl, dbListTables(con))) {
                     message(paste('Missing table:', tracker_db_tbl), echo=FALSE)
                 } else {
                     message(paste0('Writing "dat" to "', tracker_db_tbl, '" ...'), echo=FALSE)
