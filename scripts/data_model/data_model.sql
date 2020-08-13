@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS trk_trials (
 ); 
 
 CREATE TABLE IF NOT EXISTS trk_reviews (
-  flagging_id              INTEGER PRIMARY KEY,
+  flagging_id              SERIAL PRIMARY KEY,
   trial_id                 VARCHAR(1000),
   flag                     BOOLEAN,
   rating                   INTEGER,

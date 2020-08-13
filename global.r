@@ -11,10 +11,21 @@ library(lubridate)
 library(purrr)
 library(stringr)
 library(plotly)
+library(DBI)
+
+rm(list = ls(all.names = TRUE))
+gc() 
 
 date_data_transfer <- "2020-07-29"
 
-trials_original <- get(load("data/dat_processed_and_network.RData"))
+# Configuration
+tracker_db_host                 <- ''
+tracker_db_name                 <- ''
+tracker_db_user                 <- ''
+tracker_db_pass                 <- ''
+
+con <- dbConnect(RPostgres::Postgres(), dbname=tracker_db_name, host=tracker_db_host, user=tracker_db_user, password=tracker_db_pass)
+trials_original = dbGetQuery(con, "SELECT * FROM combined_view;")
 
 trials <- trials_original %>%
   select(-c(state_name, state_lon, state_lat, country_name, iso3_code)) %>%
@@ -30,7 +41,9 @@ trials_subset <- trials %>%
       study_design_final,
       number_of_arms_final,
       corrected_treatment_name,
-      outcome)
+      outcome,
+      flag,
+      rating)
 
 expected_enrollment_max <- max(trials_subset$expected_enrollment, na.rm = TRUE)
 study_design_levels <- levels(factor(trials_subset$study_design))

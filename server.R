@@ -21,7 +21,7 @@ server <- function(input, output, session) {
   output$trials <- renderDataTable(
     trials_subset_filtered(), 
     rownames=TRUE,
-    colnames = c("Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "Treatment", "Outcome"),
+    colnames = c("Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "Treatment", "Outcome", "Flag", "Rating"),
     plugins = "ellipsis", 
     options = list(pageLength = 25,
                    columnDefs = list(list(
