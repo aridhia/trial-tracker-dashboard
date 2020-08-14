@@ -13,9 +13,6 @@ library(stringr)
 library(plotly)
 library(DBI)
 
-rm(list = ls(all.names = TRUE))
-gc() 
-
 date_data_transfer <- "2020-07-29"
 
 # Configuration
@@ -23,8 +20,15 @@ tracker_db_host                 <- ''
 tracker_db_name                 <- ''
 tracker_db_user                 <- ''
 tracker_db_pass                 <- ''
+con                             <- ''
 
-con <- dbConnect(RPostgres::Postgres(), dbname=tracker_db_name, host=tracker_db_host, user=tracker_db_user, password=tracker_db_pass)
+# Set Variables for Enviorment
+if(exists("xap.conn")){
+    con <- xap.conn
+} else {
+    con <- dbConnect(RPostgres::Postgres(), dbname=tracker_db_name, host=tracker_db_host, user=tracker_db_user, password=tracker_db_pass)
+}
+
 trials_original = dbGetQuery(con, "SELECT * FROM combined_view;")
 
 trials <- trials_original %>%

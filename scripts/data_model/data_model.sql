@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS trk_staging_trials (
   tx2_category             VARCHAR(200),
   tx3_category             VARCHAR(200),
   tx4_category             VARCHAR(200),
+  tx5_category             VARCHAR(1000),
   count                    VARCHAR(200),
   phase                    VARCHAR(200),
   outcome                  VARCHAR(200)
@@ -77,6 +78,7 @@ CREATE TABLE IF NOT EXISTS trk_trials (
   tx2_category             VARCHAR(1000),
   tx3_category             VARCHAR(1000),
   tx4_category             VARCHAR(1000),
+  tx5_category             VARCHAR(1000),
   count                    DECIMAL,
   phase                    VARCHAR(1000),
   outcome                  VARCHAR(1000),

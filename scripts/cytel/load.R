@@ -3,8 +3,12 @@ library(DBI)
 # Configuration
 clinical_trial_data_file_path   <- paste("clinical_trial_live_backup_",Sys.Date(),".RData", sep="")
 archive_folder                  <- './archive'
-tracker_db_host                 <- 'localhost'
-tracker_db_name                 <- 'covid_trial_tracker'
+tracker_db_host                 <- ''
+tracker_db_name                 <- ''
+tracker_db_tbl                  <- 'trk_staging_trials'
+tracker_db_user                 <- ''
+tracker_db_pass                 <- ''
+con                             <- ''
 
 # Archive existing tables.
 #dat <- xap.read_table("trials")
@@ -12,8 +16,13 @@ tracker_db_name                 <- 'covid_trial_tracker'
 
 #save(dat, tracking_dat, file=clinical_trial_data_file_path)
 
-# Move Staging Data to Load
-con <- dbConnect(RPostgres::Postgres(), dbname=tracker_db_name, host=tracker_db_host)
+# Set Variables for Enviorment
+if(exists("xap.conn")){
+    con <- xap.conn
+} else {
+    con <- dbConnect(RPostgres::Postgres(), dbname=tracker_db_name, host=tracker_db_host, user=tracker_db_user, password=tracker_db_pass)
+}
+
 dbSendQuery(con, 'INSERT INTO trk_trials 
 (
   source_registry,          
@@ -47,7 +56,8 @@ dbSendQuery(con, 'INSERT INTO trk_trials
   tx1_category, 
   tx2_category,             
   tx3_category,             
-  tx4_category,             
+  tx4_category, 
+  tx5_category,                 
   count,                   
   phase,                    
   outcome,                  
@@ -86,7 +96,8 @@ SELECT
   tx1_category, 
   tx2_category,             
   tx3_category,             
-  tx4_category,             
+  tx4_category,
+  tx5_category,             
   count,                   
   phase,                    
   outcome,                  

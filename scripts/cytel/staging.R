@@ -18,16 +18,26 @@ library(DBI)
 # 0. Clear the session and any previous variables
 # This is important as we rely on loading an RData file,
 # and expecting new variables in memory
-rm(list = ls(all.names = TRUE))
-gc() 
+# rm(list = ls(all.names = TRUE))
+# gc() 
 
 # Configuration
 latest_rdata_file   <- '../COVID-19-Clinical-trial-tracker/dat_processed_and_network.RData'
 archive_folder      <- './archive'
 log_file            <- paste0('./archive/cytel-log-', format(Sys.time(), '%Y%m%d-%H%M%S'), '.log')
-tracker_db_host     <- 'localhost'
-tracker_db_name     <- 'covid_trial_tracker'
+tracker_db_host     <- ''
+tracker_db_name     <- ''
 tracker_db_tbl      <- 'trk_staging_trials'
+tracker_db_user     <- ''
+tracker_db_pass     <- ''
+con                 <- ''
+
+# Set Variables for Enviorment
+if(exists("xap.conn")){
+    con <- xap.conn
+} else {
+    con <- dbConnect(RPostgres::Postgres(), dbname=tracker_db_name, host=tracker_db_host, user=tracker_db_user, password=tracker_db_pass)
+}
 
 
 set_logfile(log_file)
@@ -93,7 +103,6 @@ if (!file.exists(latest_rdata_file)) {
                 # Check database connection and table exist
                 message('Testing database connection')
  
-                con <- dbConnect(RPostgres::Postgres(), dbname=tracker_db_name, host=tracker_db_host)
                 if (!is.element(tracker_db_tbl, dbListTables(con))) {
                     message(paste('Missing table:', tracker_db_tbl), echo=FALSE)
                 } else {
