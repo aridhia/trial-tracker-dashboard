@@ -62,11 +62,11 @@ server <- function(input, output, session) {
   trialModal <- function(trial, fade) {
     # print(trial)
     arms <- tagList()
-    if (!is.na(trial$number_of_arms_final)) {
+    if (!is.null(trial$number_of_arms_final) && !is.na(trial$number_of_arms_final)) {
       for (n in 1:min(trial$number_of_arms_final,7)) {
         arm_column <- paste0("tx", as.character(n), "_category")
         
-        if (!is.na(trial[[arm_column]])) {
+        if (!is.null(trial[[arm_column]]) && !is.na(trial[[arm_column]])) {
           arms <- tagAppendChild(arms, column(2, 
                                          div(tags$b(paste0("Arm ", n))),
                                          div(trial[[arm_column]])
