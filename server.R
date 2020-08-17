@@ -77,119 +77,139 @@ server <- function(input, output, session) {
     
     modalDialog(
       title = trial$trial_id,
-      fluidPage(
-        fluidRow(
-          column(12,
-            h4(trial$scientific_title)
+      tabsetPanel(
+        tabPanel("Details",
+        br(),
+        fluidPage(
+          fluidRow(
+            column(12,
+              h4(trial$scientific_title)
+            )
+          ),
+          tags$br(),
+          fluidRow(
+            column(4,
+              div(tags$b("Institution")),
+              div(trial$institution)
+            ),
+            column(8,
+                   div(tags$b("URL")),
+                   div(tags$a(href=trial$url,target= "_blank", trial$url))
+  
+            ), 
+          ),
+          tags$br(),
+          fluidRow(
+            column(3,
+                   div(tags$b("Date Registerd")),
+                   div(ifelse(is.null(format(trial$date_registered, "%d/%m/%Y")),
+                              "N/A",
+                              format(trial$date_registered, "%d/%m/%Y")
+                   ))
+            ),
+            column(3,
+                   div(tags$b("Date Updated")),
+                   div(ifelse(is.null(format(trial$date_updated, "%d/%m/%Y")),
+                              "N/A",
+                              format(trial$date_updated, "%d/%m/%Y")
+                   ))
+            ),
+            column(3,
+                   div(tags$b("Trial Start Date")),
+                   div(ifelse(is.null(format(trial$trial_start_date, "%d/%m/%Y")),
+                              "N/A",
+                              format(trial$trial_start_date, "%d/%m/%Y")
+                   ))
+            ),
+            column(3,
+                   div(tags$b("Primary Completion")),
+                   div(ifelse(is.null(format(trial$date_primary_completion, "%d/%m/%Y")),
+                              "N/A",
+                              format(trial$date_primary_completion, "%d/%m/%Y"))
+            ))
+          ),
+          tags$br(),
+          fluidRow(
+            column(3,
+                   div(tags$b("Patient Setting")),
+                   div(trial$patient_setting)
+            ),
+            column(3,
+                   div(tags$b("Expected Enrollment")),
+                   div(trial$expected_enrollment)
+            ),
+            column(3,
+                   div(tags$b("Recruitment Status")),
+                   div(trial$recruitment_status)
+            ),
+            column(3,
+                   div(tags$b("Patient Age")),
+                   div(trial$age)
+            )
+          ),
+          tags$br(),
+          fluidRow(
+            column(3,
+                   div(tags$b("Therapy Target")),
+                   div(trial$therapy_target)
+            ),
+            column(3,
+                   div(tags$b("Covid-19 Status")),
+                   div(trial$covid19_status)
+            ),
+            column(3,
+                   div(tags$b("Study Design")),
+                   div(trial$study_design_final)
+            ),
+            column(3,
+                   div(tags$b("Blinding")),
+                   div(trial$blinding_final)
+            )
+          ),
+          tags$br(),
+          fluidRow(
+            column(3,
+                   div(tags$b("Treatments")),
+                   div(trial$corrected_treatment_name)
+            ),
+            column(3,
+                   div(tags$b("Phase")),
+                   div(trial$phase)
+            ),
+            	
+            column(6,
+                   div(tags$b("Outcomes")),
+                   div(trial$outcome)
+            )
+          ),
+          tags$br(),
+          fluidRow(
+            div(tags$b("Trial Arms")),
+            arms
           )
-        ),
-        tags$br(),
-        fluidRow(
-          column(4,
-            div(tags$b("Institution")),
-            div(trial$institution)
-          ),
-          column(8,
-                 div(tags$b("URL")),
-                 div(tags$a(href=trial$url,target= "_blank", trial$url))
-
-          ), 
-        ),
-        tags$br(),
-        fluidRow(
-          column(3,
-                 div(tags$b("Date Registerd")),
-                 div(ifelse(is.null(format(trial$date_registered, "%d/%m/%Y")),
-                            "N/A",
-                            format(trial$date_registered, "%d/%m/%Y")
-                 ))
-          ),
-          column(3,
-                 div(tags$b("Date Updated")),
-                 div(ifelse(is.null(format(trial$date_updated, "%d/%m/%Y")),
-                            "N/A",
-                            format(trial$date_updated, "%d/%m/%Y")
-                 ))
-          ),
-          column(3,
-                 div(tags$b("Trial Start Date")),
-                 div(ifelse(is.null(format(trial$trial_start_date, "%d/%m/%Y")),
-                            "N/A",
-                            format(trial$trial_start_date, "%d/%m/%Y")
-                 ))
-          ),
-          column(3,
-                 div(tags$b("Primary Completion")),
-                 div(ifelse(is.null(format(trial$date_primary_completion, "%d/%m/%Y")),
-                            "N/A",
-                            format(trial$date_primary_completion, "%d/%m/%Y"))
-          ))
-        ),
-        tags$br(),
-        fluidRow(
-          column(3,
-                 div(tags$b("Patient Setting")),
-                 div(trial$patient_setting)
-          ),
-          column(3,
-                 div(tags$b("Expected Enrollment")),
-                 div(trial$expected_enrollment)
-          ),
-          column(3,
-                 div(tags$b("Recruitment Status")),
-                 div(trial$recruitment_status)
-          ),
-          column(3,
-                 div(tags$b("Patient Age")),
-                 div(trial$age)
-          )
-        ),
-        tags$br(),
-        fluidRow(
-          column(3,
-                 div(tags$b("Therapy Target")),
-                 div(trial$therapy_target)
-          ),
-          column(3,
-                 div(tags$b("Covid-19 Status")),
-                 div(trial$covid19_status)
-          ),
-          column(3,
-                 div(tags$b("Study Design")),
-                 div(trial$study_design_final)
-          ),
-          column(3,
-                 div(tags$b("Blinding")),
-                 div(trial$blinding_final)
-          )
-        ),
-        tags$br(),
-        fluidRow(
-          column(3,
-                 div(tags$b("Treatments")),
-                 div(trial$corrected_treatment_name)
-          ),
-          column(3,
-                 div(tags$b("Phase")),
-                 div(trial$phase)
-          ),
-          	
-          column(6,
-                 div(tags$b("Outcomes")),
-                 div(trial$outcome)
-          )
-        ),
-        tags$br(),
-        fluidRow(
-          div(tags$b("Trial Arms")),
-          arms
         )
+      ),
+      tabPanel("Review",
+               fluidRow(
+                 column(width=2,
+                        radioButtons("review_selection", "Accept or Reject?", choices=c("Accept", "Reject"), selected="Reject", inline=TRUE)
+                 ),
+                 column(width=4,
+                        sliderInput("review_score", "Review Score", min=0, max=10, step=0.5, value=5)
+                 ),
+                 column(width=4,
+                        textAreaInput("review_comments", "Comments")
+                 ),
+               ),
+               actionButton("review_submit", "Submit")
+               )
+      
       ),
       
       footer = fluidRow(
-        actionButton("modal_prev","Prev"),
-        actionButton("modal_next","Next"),
-        modalButton("Dismiss")
+               actionButton("modal_prev","Prev"),
+               actionButton("modal_next","Next"),
+               modalButton("Dismiss")
       ),
       easyClose = TRUE,
       fade = fade
