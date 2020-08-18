@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS trk_trials (
   phase                    VARCHAR(1000),
   outcome                  VARCHAR(1000),
   source                   VARCHAR(1000),
-  date_created             DATE
+  created_at               DATE
 ); 
 
 CREATE TABLE IF NOT EXISTS trk_reviews (
@@ -92,33 +92,24 @@ CREATE TABLE IF NOT EXISTS trk_reviews (
   flag                     BOOLEAN,
   rating                   INTEGER,
   user_submitted           VARCHAR(1000),
-  source                   VARCHAR(1000),
   note                     VARCHAR(1000),
-  date_created             DATE     
+  created_at               TIMESTAMP DEFAULT now()     
 ); 
 
 CREATE VIEW trials_view AS 
-SELECT * FROM trk_trials
-WHERE source = 'Cytel'
-GROUP BY id
-HAVING date_created = MAX(date_created);
--- UNION
--- SELECT * FROM trials
--- WHERE source = 'source_2'
--- GROUP BY id
--- HAVING date_created = MAX(date_created);
+SELECT trk_trials.* FROM trk_trials
+INNER JOIN (SELECT trial_id, max(created_at) max_date              
+   FROM trk_trials GROUP BY trial_id) t2
+ON trk_trials.trial_id = t2.trial_id AND trk_trials.created_at = t2.max_date;
 
 CREATE VIEW review_view AS 
-SELECT * FROM trk_reviews
-WHERE source = 'Cytel'
-GROUP BY flagging_id
-HAVING date_created = MAX(date_created);
--- UNION
--- SELECT * FROM reviews
--- WHERE source = 'source_2'
--- GROUP BY flagging_id
--- HAVING date_created = MAX(date_created);
+select trk_reviews.trial_id, flag, user_submitted, rating, note, created_at
+from trk_reviews
+inner join
+    (select trial_id, max(created_at) max_date FROM trk_reviews GROUP BY trial_id) t2
+ON trk_reviews.trial_id = t2.trial_id AND trk_reviews.created_at = t2.max_date;
+
 
 CREATE VIEW combined_view AS 
-SELECT t.*, r.flagging_id, r.flag, r.rating, r.user_submitted, r.source as review_source, r.note, r.date_created AS review_date_created FROM trials_view t
- LEFT JOIN review_view r ON t.trial_id = r.trial_id AND t.source = r.source;
+SELECT t.*, r.flag, r.rating, r.user_submitted, r.note, r.created_at AS review_date_created FROM trials_view t
+ LEFT JOIN review_view r ON t.trial_id = r.trial_id
