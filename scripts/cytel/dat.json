@@ -1,0 +1,189 @@
+{
+  "fields": [
+    {
+      "name": "source_registry",
+      "type": "character",
+      "_row": "source_registry"
+    },
+    {
+      "name": "trial_id",
+      "type": "character",
+      "_row": "trial_id"
+    },
+    {
+      "name": "public_title",
+      "type": "character",
+      "_row": "public_title"
+    },
+    {
+      "name": "scientific_title",
+      "type": "character",
+      "_row": "scientific_title"
+    },
+    {
+      "name": "institution",
+      "type": "character",
+      "_row": "institution"
+    },
+    {
+      "name": "date_registered",
+      "type": "double",
+      "_row": "date_registered"
+    },
+    {
+      "name": "date_updated",
+      "type": "double",
+      "_row": "date_updated"
+    },
+    {
+      "name": "trial_start_date",
+      "type": "double",
+      "_row": "trial_start_date"
+    },
+    {
+      "name": "date_primary_completion",
+      "type": "double",
+      "_row": "date_primary_completion"
+    },
+    {
+      "name": "therapy_target",
+      "type": "character",
+      "_row": "therapy_target"
+    },
+    {
+      "name": "recruitment_status",
+      "type": "character",
+      "_row": "recruitment_status"
+    },
+    {
+      "name": "expected_enrollment",
+      "type": "integer",
+      "_row": "expected_enrollment"
+    },
+    {
+      "name": "tx6_category",
+      "type": "character",
+      "_row": "tx6_category"
+    },
+    {
+      "name": "tx7_category",
+      "type": "character",
+      "_row": "tx7_category"
+    },
+    {
+      "name": "age",
+      "type": "character",
+      "_row": "age"
+    },
+    {
+      "name": "covid19_status",
+      "type": "character",
+      "_row": "covid19_status"
+    },
+    {
+      "name": "patient_setting",
+      "type": "character",
+      "_row": "patient_setting"
+    },
+    {
+      "name": "study_design_final",
+      "type": "character",
+      "_row": "study_design_final"
+    },
+    {
+      "name": "blinding_final",
+      "type": "character",
+      "_row": "blinding_final"
+    },
+    {
+      "name": "number_of_arms_final",
+      "type": "integer",
+      "_row": "number_of_arms_final"
+    },
+    {
+      "name": "state_name",
+      "type": "character",
+      "_row": "state_name"
+    },
+    {
+      "name": "state_lon",
+      "type": "double",
+      "_row": "state_lon"
+    },
+    {
+      "name": "state_lat",
+      "type": "double",
+      "_row": "state_lat"
+    },
+    {
+      "name": "country_name",
+      "type": "character",
+      "_row": "country_name"
+    },
+    {
+      "name": "iso3_code",
+      "type": "character",
+      "_row": "iso3_code"
+    },
+    {
+      "name": "pdf_link",
+      "type": "character",
+      "_row": "pdf_link"
+    },
+    {
+      "name": "url",
+      "type": "character",
+      "_row": "url"
+    },
+    {
+      "name": "corrected_treatment_name",
+      "type": "character",
+      "_row": "corrected_treatment_name"
+    },
+    {
+      "name": "corrected_treatment_name_display",
+      "type": "character",
+      "_row": "corrected_treatment_name_display"
+    },
+    {
+      "name": "tx1_category",
+      "type": "character",
+      "_row": "tx1_category"
+    },
+    {
+      "name": "tx2_category",
+      "type": "character",
+      "_row": "tx2_category"
+    },
+    {
+      "name": "tx3_category",
+      "type": "character",
+      "_row": "tx3_category"
+    },
+    {
+      "name": "tx4_category",
+      "type": "character",
+      "_row": "tx4_category"
+    },
+    {
+      "name": "tx5_category",
+      "type": "character",
+      "_row": "tx5_category"
+    },
+    {
+      "name": "count",
+      "type": "double",
+      "_row": "count"
+    },
+    {
+      "name": "phase",
+      "type": "character",
+      "_row": "phase"
+    },
+    {
+      "name": "outcome",
+      "type": "character",
+      "_row": "outcome"
+    }
+  ]
+} 
