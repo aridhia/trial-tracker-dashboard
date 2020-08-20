@@ -112,4 +112,5 @@ ON trk_reviews.trial_id = t2.trial_id AND trk_reviews.created_at = t2.max_date;
 
 CREATE VIEW combined_view AS 
 SELECT t.*, r.flag, r.rating, r.user_submitted, r.note, r.created_at AS review_date_created FROM trials_view t
- LEFT JOIN review_view r ON t.trial_id = r.trial_id
+ LEFT JOIN review_view r ON t.trial_id = r.trial_id;
+ 

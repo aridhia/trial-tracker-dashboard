@@ -2,12 +2,31 @@ ui <- fluidPage(
   tags$head(
     tags$style(
       HTML("
-		    .modal-dialog{ width: 80%}
+		    .modal-dialog{ width: 80%;}
+		    .modal-title{font-weight: 900;}
+		    .modal-header.accepted{background-color: #7bd881;}
+		    .modal-header.rejected{background-color: #f58484;}
+		    .modal-footer.accepted{background-color: #7bd881;}
+		    .modal-footer.rejected{background-color: #f58484;}
+		    
+		    
 		    .svg-container {
 		    margin-top:40px !important;
 		    }
 		    .modebar-container {
 		    top:-30px !important;
+		    }
+		    table.dataTable.display tbody tr.odd.accepted {
+		      background-color: #abfbb0;
+		    }
+		    table.dataTable.display tbody tr.odd.rejected {
+		      background-color: #fbd3d3;
+		    }
+		    table.dataTable.display tbody tr.even.accepted {
+		      background-color: #c2fdc5;
+		    }
+		    table.dataTable.display tbody tr.even.rejected {
+		      background-color: #ffe0e0;
 		    }
       ")
     )

@@ -1,7 +1,10 @@
 server <- function(input, output, session) {
+  trials_reactive <- reactiveVal(trials)
+  trials_subset_reactive <- reactiveVal(trials_subset)
+  
                              
   trials_subset_filtered <- reactive(
-    trials_subset %>% filter((expected_enrollment >= input$expected_enrollment) | (input$enrollment_na_show & is.na(expected_enrollment)),
+    trials_subset_reactive() %>% filter((expected_enrollment >= input$expected_enrollment) | (input$enrollment_na_show & is.na(expected_enrollment)),
                              study_design_final %in% input$study_design | input$study_design == "All",
                              as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2] | !input$completion_date_toggle,
                              as.logical(lapply(outcome, outcome_filter_function, input$outcome, input$outcome_andor)),
@@ -10,7 +13,7 @@ server <- function(input, output, session) {
   )
   
   trials_filtered <- reactive(
-    trials %>% filter(expected_enrollment >= input$expected_enrollment,
+    trials_reactive() %>% filter(expected_enrollment >= input$expected_enrollment,
                              study_design_final %in% input$study_design | input$study_design == "All",
                              as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2] | !input$completion_date_toggle,
                              as.logical(lapply(outcome, outcome_filter_function, input$outcome, input$outcome_andor)),
@@ -29,21 +32,40 @@ server <- function(input, output, session) {
                      render = JS("$.fn.dataTable.render.ellipsis( 15, false )")
                    ))), 
     selection = 'single',
-    class = "display nowrap"
+    class = "display nowrap",
+    server = TRUE # allows reloading of data.
   )
+  
+  proxy <- dataTableProxy('trials') # creates a proxy of the datatable to allow manipulation (ie data editing) without regenerating the whole table
+  observeEvent( trials_subset_filtered(), {
+    replaceData(proxy, trials_subset_filtered()) # update the data when trials_subset_filtered() is edited
+  })
   
   currentRow <- reactiveVal(NULL)
   modal_fade <- reactiveVal(TRUE)
   
+  ignore_row_selected <- reactiveVal(FALSE) # toggle to allow ignoring modal generation on particular actions
   observeEvent(input$trials_rows_selected, {
-    modal_fade(TRUE)
-    if (input$trials_rows_selected) {
-      if (!is.null(currentRow()) && currentRow() <= length(input$trials_rows_all) && input$trials_rows_all[[currentRow()]] == input$trials_rows_selected) {
-        trial <- trials_filtered()[input$trials_rows_selected,]
-        showModal(trialModal(trial, fade=modal_fade()))
-        modal_fade(FALSE)
-      } else {
-        currentRow( match(c(input$trials_rows_selected), input$trials_rows_all) )
+    if (ignore_row_selected()) {ignore_row_selected(FALSE)} 
+    else {
+      modal_fade(TRUE)
+      if (input$trials_rows_selected) {
+        if (!is.null(currentRow()) && currentRow() <= length(input$trials_rows_all) && input$trials_rows_all[[currentRow()]] == input$trials_rows_selected) {
+          trial <- trials_filtered()[input$trials_rows_selected,]
+          showModal(trialModal(trial, fade=modal_fade()))
+          if (!is.null(trial$flag) && !is.na(trial$flag)) {
+            if (trial$flag) {
+              shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[0].classList.add("accepted")')
+              shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[2].classList.add("accepted")')
+            } else {
+              shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[0].classList.add("rejected")')
+              shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[2].classList.add("rejected")')
+            }
+          }
+          modal_fade(FALSE)
+        } else {
+          currentRow( match(c(input$trials_rows_selected), input$trials_rows_all) )
+        }
       }
     }
   })
@@ -56,9 +78,17 @@ server <- function(input, output, session) {
     showModal(trialModal(trial, fade=modal_fade()))
     shinyjs::runjs("$('#shiny-modal')[0].scrollTop = modal_scroll_y")
     modal_fade(FALSE)
+    if (!is.null(trial$flag) && !is.na(trial$flag)) {
+      if (trial$flag) {
+        shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[0].classList.add("accepted")')
+        shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[2].classList.add("accepted")')
+      } else {
+        shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[0].classList.add("rejected")')
+        shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[2].classList.add("rejected")')
+      }
+    }
   })
                
-  
   trialModal <- function(trial, fade) {
     # print(trial)
     arms <- tagList()
@@ -75,8 +105,30 @@ server <- function(input, output, session) {
       }
     }
     
+    
+    
     modalDialog(
-      title = trial$trial_id,
+      title = {
+        if (is.null(trial$flag) || is.na(trial$flag)) {
+          fluidRow(column(width=2,trial$trial_id))
+        } else {
+          if (trial$flag) {
+            fluidRow(
+              column(width=2, trial$trial_id),
+              column(width=1, div(icon("check"), div("  ", style="white-space: pre;"), trial$rating, style="font-size: 200%; max-height: 1px; display: flex; align-items: center;")),
+              column(width=3, paste0("Accepted by: ", trial$user_submitted )),
+              style="display: flex; align-items: center;"
+            )
+          } else {
+            fluidRow(
+              column(width=2, trial$trial_id),
+              column(width=1, div(icon("times"), div("  ", style="white-space: pre;"), trial$rating, style="font-size: 200%; max-height: 1px; display: flex; align-items: center;")),
+              column(width=3, paste0("Rejected by: ", trial$user_submitted )),
+              style="display: flex; align-items: center;"
+            )
+          }
+        }
+      }, #end title
       tabsetPanel(
         tabPanel("Details",
         br(),
@@ -192,16 +244,19 @@ server <- function(input, output, session) {
       tabPanel("Review",
                fluidRow(
                  column(width=2,
-                        radioButtons("review_selection", "Accept or Reject?", choices=c("Accept", "Reject"), selected="Reject", inline=TRUE)
+                        radioButtons("review_selection", "Accept or Reject?", choices=list("Accept"= TRUE, "Reject"=FALSE), selected=if (!is.null(trial$flag) && !is.na(trial$flag)) {trial$flag} else {FALSE}, inline=TRUE),
+                        textInput("review_user_submitting", "User Submitting")
                  ),
                  column(width=4,
-                        sliderInput("review_score", "Review Score", min=0, max=10, step=0.5, value=5)
+                        sliderInput("review_score", "Review Score", min=0, max=100, step=1, value=if (!is.null(trial$rating) && !is.na(trial$rating)) {trial$rating} else {50} )
                  ),
-                 column(width=4,
-                        textAreaInput("review_comments", "Comments")
+                 column(width=6,
+                        textAreaInput("review_comments", "Comments", height="200px", value=if (!is.null(trial$note) && !is.na(trial$note)) {trial$note} else {""}) %>%
+                          shiny::tagAppendAttributes(style = 'width: 100%;')
                  ),
                ),
-               actionButton("review_submit", "Submit")
+               actionButton("review_submit", "Submit"),
+               div(id="user_blank_error", class="hidden", style="color: #ce0000;", "User is required for submisson.")
                )
       
       ),
@@ -236,11 +291,93 @@ server <- function(input, output, session) {
   
   observeEvent(input$modal_prev,{
     currentRow( currentRow() - 1 )
+    ignore_row_selected(TRUE) # prevents regeneration of modal when moving selected row
+    selectRows(proxy, input$trials_rows_all[[currentRow()]]) # moves selected row on datatable
+    # TODO move page as well with this
   })
   
   observeEvent(input$modal_next,{
     currentRow( currentRow() + 1 )
+    ignore_row_selected(TRUE) # prevents regeneration of modal when moving selected row
+    selectRows(proxy, input$trials_rows_all[[currentRow()]]) # moves selected row on datatable
+    # TODO move page as well with this
   })
+  
+  observeEvent(input$review_submit, {
+    if (is.null(input$review_user_submitting) || input$review_user_submitting == "") {
+      shinyjs::removeClass(id="user_blank_error", class="hidden")
+    } else {
+      shinyjs::addClass(id="user_blank_error", class="hidden")
+      
+      trial <- trials_filtered()[input$trials_rows_all[[currentRow()]],]
+      
+      ### TODO REQUIRE QUOTATION ESCAPE ###
+      query <- paste0("INSERT INTO trk_reviews (trial_id, flag, rating, user_submitted, note) VALUES (",
+              paste0("'", gsub("'", "''", trial$trial_id, fixed=TRUE), "', "),
+              paste0("'", as.character(input$review_selection), "', "),
+              paste0(as.character(input$review_score), ", "),
+              paste0("'", gsub("'", "''", input$review_user_submitting, fixed=TRUE), "', "),
+              paste0("'", gsub("'", "''", input$review_comments, fixed=TRUE), "'"),
+            ");"
+      )
+      print(query)
+      res <- RPostgres::dbSendQuery(con,query)
+      print(res)
+      
+      trials_new <- trials_reactive() 
+      trials_new[trials_new$trial_id == trial$trial_id,][c("flag", "rating", "user_submitted", "note", "review_date_created")] <- data.frame(c(input$review_selection),c(input$review_score),c(input$review_user_submitting),c(input$review_comments), c(Sys.time()))
+      trials_reactive(trials_new)
+      
+      trials_subset_new <- trials_subset_reactive() 
+      trials_subset_new[trials_subset_new$trial_id == trial$trial_id,][c("flag", "rating")] <- data.frame(c(input$review_selection),c(input$review_score))
+      trials_subset_reactive(trials_subset_new)
+      
+      if (input$review_selection) {
+        shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[0].classList.remove("rejected")')
+        shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[2].classList.remove("rejected")')
+        shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[0].classList.add("accepted")')
+        shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[2].classList.add("accepted")')
+      } else {
+        shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[0].classList.remove("accepted")')
+        shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[2].classList.remove("accepted")')
+        shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[0].classList.add("rejected")')
+        shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[2].classList.add("rejected")')
+      }
+      
+      if (input$review_selection) {
+        shinyjs::runjs(gsub("[\r\n]", "", paste0('$("#shiny-modal")[0].children[0].children[0].children[0].innerHTML = \'',
+          tags$h4(class="modal-title",
+            fluidRow(
+              column(width=2, trial$trial_id),
+              column(width=1, div(icon("check"), div("  ", style="white-space: pre;"), input$review_score, style="font-size: 200%; max-height: 1px; display: flex; align-items: center;")),
+              column(width=3, paste0("Accepted by: ", input$review_user_submitting )),
+              style="display: flex; align-items: center;"
+            )
+          ), '\';console.log($("#shiny-modal")[0]); console.log($("#shiny-modal")[0].children[0].children[0].children[0].innerHTML)'
+        )))
+      } else {
+        shinyjs::runjs(gsub("[\r\n]", "", paste0('$("#shiny-modal")[0].children[0].children[0].children[0].innerHTML = \'',
+          tags$h4(class="modal-title",
+            fluidRow(
+              column(width=2, trial$trial_id),
+              column(width=1, div(icon("times"), div("  ", style="white-space: pre;"), input$review_score, style="font-size: 200%; max-height: 1px; display: flex; align-items: center;")),
+              column(width=3, paste0("Rejected by: ", input$review_user_submitting )),
+              style="display: flex; align-items: center;"
+            ),
+          ), '\';console.log($("#shiny-modal")[0]); console.log($("#shiny-modal")[0].children[0].children[0].children[0].innerHTML)'
+        )))
+      }
+        
+      
+    }
+    
+  })
+  
+  
+  
+  #############################################################
+  #### SUMMARY PAGE
+  #############################################################
   
     elapsed_months <- function(end_date, start_date) {
       final_months <- 0

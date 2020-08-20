@@ -3,11 +3,11 @@ library(DBI)
 # Configuration
 clinical_trial_data_file_path   <- paste("clinical_trial_live_backup_",Sys.Date(),".RData", sep="")
 archive_folder                  <- './archive'
-tracker_db_host                 <- ''
-tracker_db_name                 <- ''
+tracker_db_host                 <- 'localhost'
+tracker_db_name                 <- 'covid_trial_tracker'
 tracker_db_tbl                  <- 'trk_staging_trials'
-tracker_db_user                 <- ''
-tracker_db_pass                 <- ''
+tracker_db_user                 <- 'postgres'
+tracker_db_pass                 <- 'postgres'
 con                             <- ''
 
 # Archive existing tables.
@@ -62,7 +62,7 @@ dbSendQuery(con, 'INSERT INTO trk_trials
   phase,                    
   outcome,                  
   source,                   
-  date_created        
+  created_at        
 )
 SELECT
   source_registry,          
@@ -70,13 +70,13 @@ SELECT
   public_title,             
   scientific_title,         
   institution,              
-  date_registered,          
-  date_updated,             
-  trial_start_date,         
-  date_primary_completion,  
+  date_registered::date,          
+  date_updated::date,             
+  trial_start_date::date,         
+  date_primary_completion::date,  
   therapy_target,           
   recruitment_status,       
-  expected_enrollment,      
+  expected_enrollment::integer,      
   tx6_category,             
   tx7_category,             
   age,                      
@@ -85,12 +85,12 @@ SELECT
   study_design_final,       
   blinding_final,           
   state_name,               
-  state_lon,                
-  state_lat,                
+  state_lon::decimal,                
+  state_lat::decimal,                
   country_name,             
   iso3_code,                
   pdf_link,                 
-  number_of_arms_final,
+  number_of_arms_final::integer,
   corrected_treatment_name, 
   corrected_treatment_name_display,
   tx1_category, 
@@ -98,7 +98,7 @@ SELECT
   tx3_category,             
   tx4_category,
   tx5_category,             
-  count,                   
+  count::decimal,                   
   phase,                    
   outcome,                  
   \'Cytel\',                   

@@ -16,10 +16,10 @@ library(DBI)
 date_data_transfer <- "2020-07-29"
 
 # Configuration
-tracker_db_host                 <- ''
-tracker_db_name                 <- ''
-tracker_db_user                 <- ''
-tracker_db_pass                 <- ''
+tracker_db_host                 <- 'localhost'
+tracker_db_name                 <- 'covid_trial_tracker'
+tracker_db_user                 <- 'postgres'
+tracker_db_pass                 <- 'postgres'
 con                             <- ''
 
 # Set Variables for Enviorment
@@ -32,8 +32,9 @@ if(exists("xap.conn")){
 trials_original = dbGetQuery(con, "SELECT * FROM combined_view;")
 
 trials <- trials_original %>%
-  select(-c(state_name, state_lon, state_lat, country_name, iso3_code)) %>%
-  unique()
+  select(-c(state_name, state_lon, state_lat, country_name, iso3_code)) 
+  # %>% unique() # unique not working anymore with new columns (?)
+trials <- trials[!duplicated(trials$trial_id), ]
 
 trials_subset <- trials %>%
   select(trial_id,
