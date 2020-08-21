@@ -37,23 +37,14 @@ ui <- fluidPage(
       sidebarPanel(
         useShinyjs(),
         width=3,
-        paste("Data last updated: ", date_data_transfer, sep=""),
-        hr(),
-        sliderInput("expected_enrollment", "Expected enrollment size at least:", min = 0, max = 4000, step = 100, value = 200),
-        checkboxInput("enrollment_na_show", label="Display trials without expected enrollment", value = FALSE),
-        hr(),
-        selectInput("study_design", "Study design:", choices = append(study_design_levels, "All", after=0), selected = "All"),
-        hr(),
-        dateRangeInput("completion_date", "Completion date between:", start = today, end = today_plus_one_month, min = completion_date_min, max = completion_date_max),
-        checkboxInput("completion_date_toggle", label="Filter by Completion Date", value = FALSE),
-        hr(),
-        selectInput("treatment", "Treatment:", choices = treatments, multiple = TRUE, selected = NULL),
-        radioButtons("treatment_andor", label = "Treatment Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE),
-        hr(),
-        selectInput("outcome", "Outcome:", choices = outcomes, multiple = TRUE, selected = NULL),
-        radioButtons("outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
+        uiOutput("input_selection_sidepanel"),
+        
       ),
       mainPanel(
+        div(id="loading_screen", style="display: inline-block",
+              h4(style="text-align: center; position: relative; top: 235px; font-size: 200%", "Loading trial data..."),
+              img(src='loading_gif.gif')
+            ),
         dataTableOutput("trials")
       )
     ),

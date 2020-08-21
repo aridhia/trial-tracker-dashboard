@@ -1,25 +1,207 @@
 server <- function(input, output, session) {
+  
+  ###############################################################################################
+  ##################################    MOVED FROM GLOBAL.R    ##################################
+  ###############################################################################################
+  
+  date_data_transfer <- "2020-07-29"
+  
+  # Configuration
+  tracker_db_host                 <- 'localhost'
+  tracker_db_name                 <- 'covid_trial_tracker'
+  tracker_db_user                 <- 'postgres'
+  tracker_db_pass                 <- 'postgres'
+  con                             <- ''
+  
+  # Set Variables for Enviorment
+  if(exists("xap.conn")){
+    con <- xap.conn
+  } else {
+    con <- dbConnect(RPostgres::Postgres(), dbname=tracker_db_name, host=tracker_db_host, user=tracker_db_user, password=tracker_db_pass)
+  }
+  
+  trials_original = RPostgres::dbGetQuery(con, "SELECT * FROM combined_view;")
+  
+  trials <- trials_original %>%
+    select(-c(state_name, state_lon, state_lat, country_name, iso3_code)) 
+  # %>% unique() # unique not working anymore with new columns (?)
+  trials <- trials[!duplicated(trials$trial_id), ]
+  
+  trials_subset <- trials %>%
+    select(trial_id,
+           scientific_title,
+           institution,
+           date_primary_completion,
+           expected_enrollment,
+           patient_setting,
+           study_design_final,
+           number_of_arms_final,
+           corrected_treatment_name,
+           outcome,
+           flag,
+           rating)
+  
+  expected_enrollment_max <- max(trials_subset$expected_enrollment, na.rm = TRUE)
+  study_design_levels <- levels(factor(trials_subset$study_design))
+  completion_date_min <- min(as.Date(trials_subset$date_primary_completion), na.rm = TRUE)
+  completion_date_max <- max(as.Date(trials_subset$date_primary_completion), na.rm = TRUE)
+  today <- Sys.Date()
+  today_plus_one_month <- Sys.Date() %m+% months(1)
+  treatments <- trials_subset$corrected_treatment_name %>% 
+    strsplit(", ") %>% reduce(c) %>% 
+    strsplit(" + ", fixed = TRUE) %>% reduce(c) %>%
+    trimws() %>%
+    unique() %>% sort()
+  outcomes <- trials_subset$outcome %>% 
+    strsplit(", ") %>% reduce(c) %>% 
+    trimws() %>%
+    unique() %>% sort()
+  
+  outcome_filter_function <- function(entry, outcomes, logic = "AND") {
+    if (is.null(outcomes)) {return(TRUE)}
+    
+    entry_split <- entry %>%
+      strsplit(", ") %>% reduce(c)
+    
+    if (logic == "AND") {
+      return (all(outcomes %in% entry_split))
+    } else if (logic == "OR") {
+      return (any(outcomes %in% entry_split))
+    }
+  }
+  
+  treatment_filter_function <- function(entry, treatments, logic = "AND") {
+    if (is.null(treatments)) {return(TRUE)}
+    
+    entry_split <- entry %>%
+      strsplit(", ") %>% reduce(c) %>% 
+      strsplit(" + ", fixed = TRUE) %>% reduce(c)
+    
+    if (logic == "AND") {
+      return (all(treatments %in% entry_split))
+    } else if (logic == "OR") {
+      return (any(treatments %in% entry_split))
+    }
+  }
+  
+  review_filter_function <- function(entry, reviewed) {
+    if (is.null(reviewed)) {return(FALSE)}
+    if (!is.na(entry)) {
+      if ("TRUE" %in% reviewed && as.logical(entry)) {return(TRUE)}
+      if ("FALSE" %in% reviewed && !as.logical(entry)) {return(TRUE)}
+    }else{
+      if ("NA" %in% reviewed && is.na(entry)) {return(TRUE)}
+    }
+    return(FALSE)
+  }
+  
+  
+  get_count_of_treatments <- function(){
+    
+    treatment_count_df <- data.frame(treatment=character(), count=integer())
+    
+    for (treatment_item in treatments){
+      counter <- 0
+      for (row in 1:nrow(trials)){
+        if (grepl(treatment_item, trials[row, "corrected_treatment_name"], fixed = TRUE)){
+          counter <- counter + 1
+        }
+      }
+      treatment_count_df <- rbind(treatment_count_df, data.frame(treatment=treatment_item, count=counter))
+    }
+    treatment_count_df_sorted <- treatment_count_df[order(-treatment_count_df$count),]
+    treatment_count_df_sorted <- head(treatment_count_df_sorted, 20)
+    return(treatment_count_df_sorted)
+  }
+  
+  get_count_of_outcomes <- function(){
+
+    outcomes_count_df <- data.frame(outcomes=character(), count=integer())
+
+    for (outcomes_item in outcomes){
+      counter <- 0
+      for (row in 1:nrow(trials)){
+        if (grepl(outcomes_item, trials[row, "outcome"], fixed = TRUE)){
+          counter <- counter + 1
+        }
+      }
+      outcomes_count_df <- rbind(outcomes_count_df, data.frame(outcome=outcomes_item, count=counter))
+    }
+    outcomes_count_df_sorted <- outcomes_count_df[order(-outcomes_count_df$count),]
+    outcomes_count_df_sorted <- head(outcomes_count_df_sorted, 20)
+    return(outcomes_count_df_sorted)
+  }
+
+  get_completed_trials <- function(){
+    counts <- table(status = trials$recruitment_status)
+    counts_dataframe <- as.data.frame(counts)
+    completed <- subset(counts_dataframe, (status == 'Completed'), select=c(Freq))
+    return(completed[1,1])
+  }
+
+  treatment_count_df <- get_count_of_treatments()
+  outcomes_count_df <- get_count_of_outcomes()
+  completed_trials = get_completed_trials()
+  
+  ###############################################################################################
+  ###############################################################################################
+  ###############################################################################################
+  shinyjs::addClass(id="loading_screen", class="hidden")
+  
+  output$input_selection_sidepanel <- renderUI({
+    tagList(
+      paste("Data last updated: ", date_data_transfer, sep=""),
+      hr(),
+      checkboxGroupInput("flagged_trails", label="Display trials with flag:", inline=TRUE, choices=list("Accepted"= TRUE, "Rejected"=FALSE, "Unreviewed"="NA"), selected = c(TRUE, FALSE, "NA")),
+      hr(),
+      sliderInput("expected_enrollment", "Expected enrollment size at least:", min = 0, max = 4000, step = 100, value = 200),
+      checkboxInput("enrollment_na_show", label="Display trials without expected enrollment", value = FALSE),
+      hr(),
+      selectInput("study_design", "Study design:", choices = append(study_design_levels, "All", after=0), selected = "All"),
+      hr(),
+      dateRangeInput("completion_date", "Completion date between:", start = today, end = today_plus_one_month, min = completion_date_min, max = completion_date_max),
+      checkboxInput("completion_date_toggle", label="Filter by Completion Date", value = FALSE),
+      hr(),
+      selectInput("treatment", "Treatment:", choices = treatments, multiple = TRUE, selected = NULL),
+      radioButtons("treatment_andor", label = "Treatment Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE),
+      hr(),
+      selectInput("outcome", "Outcome:", choices = outcomes, multiple = TRUE, selected = NULL),
+      radioButtons("outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
+    )
+  })
+  
+
   trials_reactive <- reactiveVal(trials)
   trials_subset_reactive <- reactiveVal(trials_subset)
   
                              
-  trials_subset_filtered <- reactive(
-    trials_subset_reactive() %>% filter((expected_enrollment >= input$expected_enrollment) | (input$enrollment_na_show & is.na(expected_enrollment)),
-                             study_design_final %in% input$study_design | input$study_design == "All",
-                             as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2] | !input$completion_date_toggle,
-                             as.logical(lapply(outcome, outcome_filter_function, input$outcome, input$outcome_andor)),
-                             as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, input$treatment_andor))
-                             )
-  )
+  trials_subset_filtered <- reactive({
+    if (is.null(input$expected_enrollment)) {
+      trials_subset_reactive() # prevents filter error on first render but allows initial generation of datatable (which is isolated)
+    } else {
+      trials_subset_reactive() %>% filter((expected_enrollment >= input$expected_enrollment) | (input$enrollment_na_show & is.na(expected_enrollment)),
+                               study_design_final %in% input$study_design | input$study_design == "All",
+                               as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2] | !input$completion_date_toggle,
+                               as.logical(lapply(outcome, outcome_filter_function, input$outcome, input$outcome_andor)),
+                               as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, input$treatment_andor)),
+                               as.logical(lapply(flag, review_filter_function, input$flagged_trails))
+      )
+    }
+  })
   
-  trials_filtered <- reactive(
-    trials_reactive() %>% filter(expected_enrollment >= input$expected_enrollment,
-                             study_design_final %in% input$study_design | input$study_design == "All",
-                             as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2] | !input$completion_date_toggle,
-                             as.logical(lapply(outcome, outcome_filter_function, input$outcome, input$outcome_andor)),
-                             as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, input$treatment_andor))
-    )
-  )
+  trials_filtered <- reactive({
+    if (is.null(input$expected_enrollment)) {
+      trials_reactive() # prevents filter error on first render but allows initial generation of datatable (which is isolated)
+    } else {
+      trials_reactive() %>% filter(expected_enrollment >= input$expected_enrollment,
+                               study_design_final %in% input$study_design | input$study_design == "All",
+                               as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2] | !input$completion_date_toggle,
+                               as.logical(lapply(outcome, outcome_filter_function, input$outcome, input$outcome_andor)),
+                               as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, input$treatment_andor)),
+                               as.logical(lapply(flag, review_filter_function, input$flagged_trails))
+      )
+    }
+  })
 
   output$trials <- renderDataTable(
     isolate(trials_subset_filtered()), 
@@ -324,13 +506,19 @@ server <- function(input, output, session) {
       res <- RPostgres::dbSendQuery(con,query)
       print(res)
       
-      trials_new <- trials_reactive() 
-      trials_new[trials_new$trial_id == trial$trial_id,][c("flag", "rating", "user_submitted", "note", "review_date_created")] <- data.frame(c(input$review_selection),c(input$review_score),c(input$review_user_submitting),c(input$review_comments), c(Sys.time()))
-      trials_reactive(trials_new)
-      
+      trials_new <- trials_reactive()
       trials_subset_new <- trials_subset_reactive() 
-      trials_subset_new[trials_subset_new$trial_id == trial$trial_id,][c("flag", "rating")] <- data.frame(c(input$review_selection),c(input$review_score))
-      trials_subset_reactive(trials_subset_new)
+      
+      if (length(which(trials_new$trial_id == trial$trial_id)) > 0 && length(which(trials_subset_new$trial_id == trial$trial_id)) > 0) {
+        
+        row_value_trials <- which(trials_new$trial_id == trial$trial_id)[1]
+        trials_new[row_value_trials, c("flag", "rating", "user_submitted", "note", "review_date_created")] <- c(input$review_selection, input$review_score, input$review_user_submitting, input$review_comments, as.character(Sys.time()))
+        trials_reactive(trials_new)
+        
+        row_value_trials_subset <- which(trials_subset_new$trial_id == trial$trial_id)[1]
+        trials_subset_new[row_value_trials_subset, c("flag", "rating")] <- c(input$review_selection, input$review_score)
+        trials_subset_reactive(trials_subset_new)
+      }
       
       if (input$review_selection) {
         shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[0].classList.remove("rejected")')
