@@ -22,7 +22,7 @@ server <- function(input, output, session) {
   )
 
   output$trials <- renderDataTable(
-    trials_subset_filtered(), 
+    isolate(trials_subset_filtered()), 
     rownames=TRUE,
     colnames = c("Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "Treatment", "Outcome", "Flag", "Rating"),
     plugins = "ellipsis", 
@@ -38,7 +38,7 @@ server <- function(input, output, session) {
   
   proxy <- dataTableProxy('trials') # creates a proxy of the datatable to allow manipulation (ie data editing) without regenerating the whole table
   observeEvent( trials_subset_filtered(), {
-    replaceData(proxy, trials_subset_filtered()) # update the data when trials_subset_filtered() is edited
+    replaceData(proxy, trials_subset_filtered(), resetPaging = FALSE, clearSelection = FALSE) # update the data when trials_subset_filtered() is edited
   })
   
   currentRow <- reactiveVal(NULL)
