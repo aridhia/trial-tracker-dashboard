@@ -211,10 +211,33 @@ server <- function(input, output, session) {
     colnames = c("Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "Treatment", "Outcome", "Flag", "Rating"),
     plugins = "ellipsis", 
     options = list(pageLength = 25,
-                   columnDefs = list(list(
-                     targets = c(1,2,3,4,5,6,7,8,9,10),
-                     render = JS("$.fn.dataTable.render.ellipsis( 15, false )")
-                   ))), 
+                   columnDefs = list(
+                      list(
+                       targets = c(1,2,3,4,5,6,7,8,9,10),
+                       render = JS("$.fn.dataTable.render.ellipsis( 15, false )")
+                      ),
+                      list(
+                        targets = 11,
+                        render = JS("function(data, type, row) {
+                                      if (typeof(data) == 'undefined' || data == null) {return(\"\")};
+                                      if (data) {return (\"Accepted\")};
+                                      if (!data) {return (\"Rejected\")};
+                                     }"
+                        )
+                      )
+                   ),
+                   rowCallback = JS("function( row, data, dataIndex ) {
+                                        console.log(data);
+                                        if (typeof(data[11]) != 'undefined' && data[11] != null){
+                                          if ( data[11] ) {
+                                            $(row).addClass( 'accepted' );
+                                          } else if ( !data[11] ) {
+                                            $(row).addClass( 'rejected' );
+                                          }
+                                        }
+                                      }"
+                   )
+                   ), 
     selection = 'single',
     class = "display nowrap",
     server = TRUE # allows reloading of data.
@@ -225,6 +248,21 @@ server <- function(input, output, session) {
   observeEvent( trials_subset_filtered(), {
     replaceData(proxy, trials_subset_filtered(), resetPaging = FALSE, clearSelection = FALSE) # update the data when trials_subset_filtered() is edited
   })
+  
+  # shinyjs::runjs(
+  #   "console.log(\"RUNNING JS... \");
+  #   console.log($('#trials'));
+  #   console.log($('#trials').dataTable);
+  #   $('#trials').dataTable( {
+  #     \"createdRow\": function( row, data, dataIndex ) {
+  #       if ( data[10] == \"TRUE\" ) {
+  #         $(row).addClass( 'accepted' );
+  #       } else if ( data[10] == \"FALSE\" ) {
+  #         $(row).addClass( 'rejected' );
+  #       }
+  #     }
+  #   } )"
+  # )
   
   currentRow <- reactiveVal(NULL)
   modal_fade <- reactiveVal(TRUE)
@@ -530,11 +568,11 @@ server <- function(input, output, session) {
       if (length(which(trials_new$trial_id == trial$trial_id)) > 0 && length(which(trials_subset_new$trial_id == trial$trial_id)) > 0) {
         
         row_value_trials <- which(trials_new$trial_id == trial$trial_id)[1]
-        trials_new[row_value_trials, c("flag", "rating", "user_submitted", "note", "review_date_created")] <- c(input$review_selection, input$review_score, input$review_user_submitting, input$review_comments, as.character(Sys.time()))
+        trials_new[row_value_trials, c("flag", "rating", "user_submitted", "note", "review_date_created")] <- c(as.logical(input$review_selection), input$review_score, input$review_user_submitting, input$review_comments, as.character(Sys.time()))
         trials_reactive(trials_new)
         
         row_value_trials_subset <- which(trials_subset_new$trial_id == trial$trial_id)[1]
-        trials_subset_new[row_value_trials_subset, c("flag", "rating")] <- c(input$review_selection, input$review_score)
+        trials_subset_new[row_value_trials_subset, c("flag", "rating")] <- c(as.logical(input$review_selection), input$review_score)
         trials_subset_reactive(trials_subset_new)
       }
       
