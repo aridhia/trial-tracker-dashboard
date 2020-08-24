@@ -462,7 +462,7 @@ server <- function(input, output, session) {
   })
   
   observe({
-    shinyjs::toggleState("modal_next", currentRow() < nrow(trials_filtered()))
+    shinyjs::toggleState("modal_next", (currentRow() < nrow(trials_filtered()) || (review_display_edge_case() && nrow(trials_filtered() != 0))))
   })
   
   observe({
@@ -472,13 +472,13 @@ server <- function(input, output, session) {
   
   observe({
     input$trials_rows_selected
-    shinyjs::toggleState("modal_next", currentRow() < nrow(trials_filtered()))
+    shinyjs::toggleState("modal_next", (currentRow() < nrow(trials_filtered()) || (review_display_edge_case() && nrow(trials_filtered() != 0))))
   })
   
   observeEvent(input$modal_prev,{
     # edge case doesn't appear when moving back
     currentRow( currentRow() - 1 )
-    review_display_edge_case(FALSE)
+    review_display_edge_case(FALSE) # edge case doesn't persist after moving
     ignore_row_selected(TRUE) # prevents regeneration of modal when moving selected row
     selectRows(proxy, input$trials_rows_all[[currentRow()]]) # moves selected row on datatable
     # TODO move page as well with this
@@ -494,7 +494,7 @@ server <- function(input, output, session) {
     } else {
       currentRow( currentRow() + 1 )
     }
-    review_display_edge_case(FALSE)
+    review_display_edge_case(FALSE) # edge case doesn't persist after moving
     ignore_row_selected(TRUE) # prevents regeneration of modal when moving selected row
     selectRows(proxy, input$trials_rows_all[[currentRow()]]) # moves selected row on datatable
     # TODO move page as well with this
