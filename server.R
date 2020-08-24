@@ -148,6 +148,8 @@ server <- function(input, output, session) {
   ###############################################################################################
   shinyjs::addClass(id="loading_screen", class="hidden")
   
+  
+  ## Pulled from UI because these depend on data being loaded (which is now removed from Global.r)
   output$input_selection_sidepanel <- renderUI({
     tagList(
       paste("Data last updated: ", date_data_transfer, sep=""),
@@ -170,14 +172,14 @@ server <- function(input, output, session) {
     )
   })
   
-
+  ## trails / trials_subset now need to be reactive to respond to data changing
   trials_reactive <- reactiveVal(trials)
   trials_subset_reactive <- reactiveVal(trials_subset)
   
                              
   trials_subset_filtered <- reactive({
     if (is.null(input$expected_enrollment)) {
-      trials_subset_reactive() # prevents filter error on first render but allows initial generation of datatable (which is isolated)
+      trials_subset_reactive() # prevents filter error on first render but allows initial generation of datatable (which is isolated so only occurs once)
     } else {
       trials_subset_reactive() %>% filter((expected_enrollment >= input$expected_enrollment) | (input$enrollment_na_show & is.na(expected_enrollment)),
                                study_design_final %in% input$study_design | input$study_design == "All",
@@ -204,7 +206,7 @@ server <- function(input, output, session) {
   })
 
   output$trials <- renderDataTable(
-    isolate(trials_subset_filtered()), 
+    isolate(trials_subset_filtered()), # Isolated this so that data table is updated via 'proxy' instead
     rownames=TRUE,
     colnames = c("Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "Treatment", "Outcome", "Flag", "Rating"),
     plugins = "ellipsis", 
@@ -218,6 +220,7 @@ server <- function(input, output, session) {
     server = TRUE # allows reloading of data.
   )
   
+  # This proxy datatable allows updating data/selected items dynamically without rerendering the whole table again
   proxy <- dataTableProxy('trials') # creates a proxy of the datatable to allow manipulation (ie data editing) without regenerating the whole table
   observeEvent( trials_subset_filtered(), {
     replaceData(proxy, trials_subset_filtered(), resetPaging = FALSE, clearSelection = FALSE) # update the data when trials_subset_filtered() is edited
@@ -225,6 +228,7 @@ server <- function(input, output, session) {
   
   currentRow <- reactiveVal(NULL)
   modal_fade <- reactiveVal(TRUE)
+  review_display_edge_case <- reactiveVal(FALSE)
   
   ignore_row_selected <- reactiveVal(FALSE) # toggle to allow ignoring modal generation on particular actions
   observeEvent(input$trials_rows_selected, {
@@ -454,32 +458,43 @@ server <- function(input, output, session) {
   }
   
   observe({
-    shinyjs::toggleState("modal_prev", currentRow() != 1)
+    shinyjs::toggleState("modal_prev", currentRow() > 1)
   })
   
   observe({
-    shinyjs::toggleState("modal_next", currentRow() != nrow(trials_filtered()))
-  })
-  
-  observe({
-    input$trials_rows_selected
-    shinyjs::toggleState("modal_prev", currentRow() != 1)
+    shinyjs::toggleState("modal_next", currentRow() < nrow(trials_filtered()))
   })
   
   observe({
     input$trials_rows_selected
-    shinyjs::toggleState("modal_next", currentRow() != nrow(trials_filtered()))
+    shinyjs::toggleState("modal_prev", currentRow() > 1)
+  })
+  
+  observe({
+    input$trials_rows_selected
+    shinyjs::toggleState("modal_next", currentRow() < nrow(trials_filtered()))
   })
   
   observeEvent(input$modal_prev,{
+    # edge case doesn't appear when moving back
     currentRow( currentRow() - 1 )
+    review_display_edge_case(FALSE)
     ignore_row_selected(TRUE) # prevents regeneration of modal when moving selected row
     selectRows(proxy, input$trials_rows_all[[currentRow()]]) # moves selected row on datatable
     # TODO move page as well with this
   })
   
   observeEvent(input$modal_next,{
-    currentRow( currentRow() + 1 )
+    # fixing an edge case where currentRow disappears when
+    # submitting a review which is not filtered to be displayed
+    if (review_display_edge_case()) {
+      temp_row <- currentRow()
+      currentRow( NULL )
+      currentRow( temp_row )
+    } else {
+      currentRow( currentRow() + 1 )
+    }
+    review_display_edge_case(FALSE)
     ignore_row_selected(TRUE) # prevents regeneration of modal when moving selected row
     selectRows(proxy, input$trials_rows_all[[currentRow()]]) # moves selected row on datatable
     # TODO move page as well with this
@@ -505,6 +520,9 @@ server <- function(input, output, session) {
       print(query)
       res <- RPostgres::dbSendQuery(con,query)
       print(res)
+      
+      # edge case where newly create review should is not included in filter. upsets all of the row counting.
+      if (!(input$review_selection %in% input$flagged_trails)) {review_display_edge_case(TRUE)}
       
       trials_new <- trials_reactive()
       trials_subset_new <- trials_subset_reactive() 
