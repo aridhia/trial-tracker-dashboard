@@ -3,11 +3,11 @@ library(DBI)
 # Configuration
 clinical_trial_data_file_path   <- paste("clinical_trial_live_backup_",Sys.Date(),".RData", sep="")
 archive_folder                  <- './archive'
-tracker_db_host                 <- 'localhost'
-tracker_db_name                 <- 'covid_trial_tracker'
+tracker_db_host                 <- ''
+tracker_db_name                 <- ''
 tracker_db_tbl                  <- 'trk_staging_trials'
-tracker_db_user                 <- 'postgres'
-tracker_db_pass                 <- 'postgres'
+tracker_db_user                 <- ''
+tracker_db_pass                 <- ''
 con                             <- ''
 
 # Archive existing tables.

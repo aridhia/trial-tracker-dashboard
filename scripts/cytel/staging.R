@@ -25,11 +25,11 @@ library(DBI)
 latest_rdata_file   <- '../COVID-19-Clinical-trial-tracker/dat_processed_and_network.RData'
 archive_folder      <- './archive'
 log_file            <- paste0('./archive/cytel-log-', format(Sys.time(), '%Y%m%d-%H%M%S'), '.log')
-tracker_db_host     <- 'localhost'
-tracker_db_name     <- 'covid_trial_tracker'
+tracker_db_host     <- ''
+tracker_db_name     <- ''
 tracker_db_tbl      <- 'trk_staging_trials'
-tracker_db_user     <- 'postgres'
-tracker_db_pass     <- 'postgres'
+tracker_db_user     <- ''
+tracker_db_pass     <- ''
 con                 <- ''
 
 # Set Variables for Enviorment

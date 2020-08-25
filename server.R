@@ -7,10 +7,10 @@ server <- function(input, output, session) {
   date_data_transfer <- "2020-07-29"
   
   # Configuration
-  tracker_db_host                 <- 'localhost'
-  tracker_db_name                 <- 'covid_trial_tracker'
-  tracker_db_user                 <- 'postgres'
-  tracker_db_pass                 <- 'postgres'
+  tracker_db_host                 <- ''
+  tracker_db_name                 <- ''
+  tracker_db_user                 <- ''
+  tracker_db_pass                 <- ''
   con                             <- ''
   
   # Set Variables for Enviorment
@@ -156,7 +156,7 @@ server <- function(input, output, session) {
       hr(),
       checkboxGroupInput("flagged_trails", label="Display trials with flag:", inline=TRUE, choices=list("Accepted"= TRUE, "Rejected"=FALSE, "Unreviewed"="NA"), selected = c(TRUE, FALSE, "NA")),
       hr(),
-      sliderInput("expected_enrollment", "Expected enrollment size at least:", min = 0, max = 4000, step = 100, value = 200),
+      sliderInput("expected_enrollment", "Expected enrollment size at least:", min = 0, max = 4000, step = 100, value=0),
       checkboxInput("enrollment_na_show", label="Display trials without expected enrollment", value = FALSE),
       hr(),
       selectInput("study_design", "Study design:", choices = append(study_design_levels, "All", after=0), selected = "All"),
