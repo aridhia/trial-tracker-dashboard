@@ -1,8 +1,8 @@
-DROP DATABASE IF EXISTS covid_trial_tracker;
+-- DROP DATABASE IF EXISTS covid_trial_tracker;
 
-CREATE DATABASE covid_trial_tracker;
+-- CREATE DATABASE covid_trial_tracker;
 
-\c covid_trial_tracker
+-- \c covid_trial_tracker
 
 CREATE TABLE IF NOT EXISTS trk_staging_trials (
   id                       SERIAL PRIMARY KEY,

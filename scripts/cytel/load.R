@@ -3,11 +3,7 @@ library(DBI)
 # Configuration
 clinical_trial_data_file_path   <- paste("clinical_trial_live_backup_",Sys.Date(),".RData", sep="")
 archive_folder                  <- './archive'
-tracker_db_host                 <- ''
-tracker_db_name                 <- ''
 tracker_db_tbl                  <- 'trk_staging_trials'
-tracker_db_user                 <- ''
-tracker_db_pass                 <- ''
 con                             <- ''
 
 # Archive existing tables.
@@ -20,7 +16,7 @@ con                             <- ''
 if(exists("xap.conn")){
     con <- xap.conn
 } else {
-    con <- dbConnect(RPostgres::Postgres(), dbname=tracker_db_name, host=tracker_db_host, user=tracker_db_user, password=tracker_db_pass)
+   con <- dbConnect(RPostgres::Postgres(), dbname=Sys.getenv("PGDATABASE"), host=Sys.getenv("PGHOST"), user=Sys.getenv("PGUSER"), password=Sys.getenv("PGPASSWORD"))
 }
 
 dbSendQuery(con, 'INSERT INTO trk_trials 

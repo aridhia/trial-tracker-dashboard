@@ -7,7 +7,6 @@ if(exists("xap.conn")){
 library(dplyr)
 library(DT)
 library(shiny)
-library(shinydashboard)
 library(shinyjs)
 library(shinythemes)
 library(tidyr)

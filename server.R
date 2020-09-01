@@ -1,3 +1,6 @@
+options(connectionObserver = NULL)
+
+
 server <- function(input, output, session) {
   
   ###############################################################################################
@@ -5,19 +8,13 @@ server <- function(input, output, session) {
   ###############################################################################################
   
   date_data_transfer <- "2020-07-29"
-  
-  # Configuration
-  tracker_db_host                 <- ''
-  tracker_db_name                 <- ''
-  tracker_db_user                 <- ''
-  tracker_db_pass                 <- ''
-  con                             <- ''
+  con                <- ''
   
   # Set Variables for Enviorment
   if(exists("xap.conn")){
     con <- xap.conn
   } else {
-    con <- dbConnect(RPostgres::Postgres(), dbname=tracker_db_name, host=tracker_db_host, user=tracker_db_user, password=tracker_db_pass)
+    con <- dbConnect(RPostgres::Postgres(), dbname=Sys.getenv("PGDATABASE"), host=Sys.getenv("PGHOST"), user=Sys.getenv("PGUSER"), password=Sys.getenv("PGPASSWORD"))
   }
   
   trials_original = RPostgres::dbGetQuery(con, "SELECT * FROM combined_view;")
@@ -94,40 +91,29 @@ server <- function(input, output, session) {
     }
     return(FALSE)
   }
+  shinyjs::addClass(id="loading_screen", class="hidden")
   
   
   get_count_of_treatments <- function(){
     
-    treatment_count_df <- data.frame(treatment=character(), count=integer())
-    
-    for (treatment_item in treatments){
-      counter <- 0
-      for (row in 1:nrow(trials)){
-        if (grepl(treatment_item, trials[row, "corrected_treatment_name"], fixed = TRUE)){
-          counter <- counter + 1
-        }
-      }
-      treatment_count_df <- rbind(treatment_count_df, data.frame(treatment=treatment_item, count=counter))
-    }
-    treatment_count_df_sorted <- treatment_count_df[order(-treatment_count_df$count),]
+    treatments <- trials_subset$corrected_treatment_name %>% 
+      strsplit(", ") %>% reduce(c) %>% 
+      strsplit(" + ", fixed = TRUE) %>% reduce(c) %>%
+      trimws() %>% sort()
+    treatment_count_df <- as.data.frame(table(treatments))
+    treatment_count_df_sorted <- treatment_count_df[order(-treatment_count_df$Freq),]
     treatment_count_df_sorted <- head(treatment_count_df_sorted, 20)
     return(treatment_count_df_sorted)
   }
   
   get_count_of_outcomes <- function(){
 
-    outcomes_count_df <- data.frame(outcomes=character(), count=integer())
-
-    for (outcomes_item in outcomes){
-      counter <- 0
-      for (row in 1:nrow(trials)){
-        if (grepl(outcomes_item, trials[row, "outcome"], fixed = TRUE)){
-          counter <- counter + 1
-        }
-      }
-      outcomes_count_df <- rbind(outcomes_count_df, data.frame(outcome=outcomes_item, count=counter))
-    }
-    outcomes_count_df_sorted <- outcomes_count_df[order(-outcomes_count_df$count),]
+    outcomes <- trials_subset$outcome %>% 
+      strsplit(", ") %>% reduce(c) %>% 
+      strsplit(" + ", fixed = TRUE) %>% reduce(c) %>%
+      trimws() %>% sort()
+    outcomes_count_df <- as.data.frame(table(outcomes))
+    outcomes_count_df_sorted <- outcomes_count_df[order(-outcomes_count_df$Freq),]
     outcomes_count_df_sorted <- head(outcomes_count_df_sorted, 20)
     return(outcomes_count_df_sorted)
   }
@@ -146,7 +132,7 @@ server <- function(input, output, session) {
   ###############################################################################################
   ###############################################################################################
   ###############################################################################################
-  shinyjs::addClass(id="loading_screen", class="hidden")
+  
   
   
   ## Pulled from UI because these depend on data being loaded (which is now removed from Global.r)
@@ -652,13 +638,13 @@ server <- function(input, output, session) {
     
     output$noOfOutcomes <- renderPlotly({
       fig <- plot_ly(outcomes_count_df,
-                     y = ~reorder(outcome, count),
-                     x = ~count,
+                     y = ~reorder(outcomes, Freq),
+                     x = ~Freq,
                      orientation = 'h',
                      type = "bar",
                      marker=list(color=c('rgb(54, 153, 177)')),
                      hoverinfo = 'text',
-                     text = ~paste('</br> No. of Trials: ', count)
+                     text = ~paste('</br> No. of Trials: ', Freq)
       )
       
       fig <- fig %>% layout(title = "No. of Trials by Outcome (Top 20)",
@@ -668,13 +654,13 @@ server <- function(input, output, session) {
     
     output$noOfTreatments <- renderPlotly({
       fig <- plot_ly(treatment_count_df,
-                     y = ~reorder(treatment, count),
-                     x = ~count,
+                     y = ~reorder(treatments, Freq),
+                     x = ~Freq,
                      orientation = 'h',
                      type = "bar",
                      marker=list(color=c('rgb(54, 153, 177)')),
                      hoverinfo = 'text',
-                     text = ~paste('</br> No. of Trials: ', count)
+                     text = ~paste('</br> No. of Trials: ', Freq)
       )
       
       fig <- fig %>% layout(title = "No. of Trials by Treatment (Top 20)",

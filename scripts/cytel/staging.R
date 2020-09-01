@@ -25,18 +25,14 @@ library(DBI)
 latest_rdata_file   <- '../COVID-19-Clinical-trial-tracker/dat_processed_and_network.RData'
 archive_folder      <- './archive'
 log_file            <- paste0('./archive/cytel-log-', format(Sys.time(), '%Y%m%d-%H%M%S'), '.log')
-tracker_db_host     <- ''
-tracker_db_name     <- ''
 tracker_db_tbl      <- 'trk_staging_trials'
-tracker_db_user     <- ''
-tracker_db_pass     <- ''
 con                 <- ''
 
 # Set Variables for Enviorment
 if(exists("xap.conn")){
     con <- xap.conn
 } else {
-    con <- dbConnect(RPostgres::Postgres(), dbname=tracker_db_name, host=tracker_db_host, user=tracker_db_user, password=tracker_db_pass)
+    con <- dbConnect(RPostgres::Postgres(), dbname=Sys.getenv("PGDATABASE"), host=Sys.getenv("PGHOST"), user=Sys.getenv("PGUSER"), password=Sys.getenv("PGPASSWORD"))
 }
 
 
