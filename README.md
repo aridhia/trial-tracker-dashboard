@@ -83,7 +83,7 @@ The data model should now be populated with the Cytel data feed.
 Sys.setenv(PGHOST = "")
 Sys.setenv(PGDATABASE = "")
 Sys.setenv(PGUSER = "")
-Sys.setenv(PGPASSWORD = ""
+Sys.setenv(PGPASSWORD = "")
 ```
 
 4. Run the application.
