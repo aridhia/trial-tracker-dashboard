@@ -628,22 +628,6 @@ server <- function(input, output, session) {
       return(final_months)
     }
     
-    output$noOfUsers <- renderPlotly({
-      options(scipen=10000)
-      more_than_200_users <- trials %>% filter(expected_enrollment >= 200 & expected_enrollment <= 15000)
-      fig <- plot_ly(more_than_200_users,
-                     x = ~expected_enrollment,
-                     type = "histogram",
-                     marker=list(color=c('rgb(54, 153, 177)'))
-      )
-      
-      fig <- fig %>% layout(title = "Distribution of No. Users Per Trial Limits: Between 200 & 15000",
-                            xaxis = list(title = "Outcome"),
-                            yaxis = list(title = "Expected Enrollment Bins"))
-    })
-    
-    
-    
     output$noOfOutcomes <- renderPlotly({
       fig <- plot_ly(outcomes_count_df,
                      y = ~reorder(outcomes, Freq),
