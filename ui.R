@@ -54,8 +54,7 @@ ui <- fluidPage(
                column(6, )),
              hr(),
              fluidRow(
-               column(6, plotlyOutput("noOfMonths")),
-               column(6, plotlyOutput("noOfUsers"))),
+               column(12, plotlyOutput("noOfMonths"))),
              hr(),
              fluidRow(
                column(6, plotlyOutput("noOfOutcomes")),
