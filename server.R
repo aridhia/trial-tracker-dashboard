@@ -404,7 +404,7 @@ server <- function(input, output, session) {
                    div(trial$patient_setting)
             ),
             column(3,
-                   div(tags$b("Expected Enrollment")),
+                   div(tags$b("Expected No. of Patients")),
                    div(trial$expected_enrollment)
             ),
             column(3,
