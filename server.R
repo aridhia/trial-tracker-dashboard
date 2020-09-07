@@ -370,7 +370,7 @@ server <- function(input, output, session) {
           tags$br(),
           fluidRow(
             column(3,
-                   div(tags$b("Date Registerd")),
+                   div(tags$b("Date Registered")),
                    div(ifelse(is.null(format(trial$date_registered, "%d/%m/%Y")),
                               "N/A",
                               format(trial$date_registered, "%d/%m/%Y")
