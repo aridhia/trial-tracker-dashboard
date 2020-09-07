@@ -3,6 +3,13 @@ options(connectionObserver = NULL)
 
 server <- function(input, output, session) {
   
+  # fix for mini_app greying-out after 10 min of inactivity
+  autoInvalidate <- reactiveTimer(30000)
+  observe({
+    autoInvalidate()
+    cat(".")
+  })
+  
   ###############################################################################################
   ##################################    MOVED FROM GLOBAL.R    ##################################
   ###############################################################################################
