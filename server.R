@@ -42,8 +42,7 @@ server <- function(input, output, session) {
            number_of_arms_final,
            corrected_treatment_name,
            outcome,
-           flag,
-           rating)
+           flag)
   
   expected_enrollment_max <- max(trials_subset$expected_enrollment, na.rm = TRUE)
   study_design_levels <- levels(factor(trials_subset$study_design))
@@ -202,7 +201,7 @@ server <- function(input, output, session) {
   output$trials <- renderDataTable(
     isolate(trials_subset_filtered()), # Isolated this so that data table is updated via 'proxy' instead
     rownames=TRUE,
-    colnames = c("Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "Treatment", "Outcome", "Flag", "Rating"),
+    colnames = c("Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "Treatment", "Outcome", "Flag"),
     plugins = "ellipsis", 
     options = list(pageLength = 25,
                    columnDefs = list(
@@ -465,9 +464,6 @@ server <- function(input, output, session) {
                         radioButtons("review_selection", "Accept or Reject?", choices=list("Accept"= TRUE, "Reject"=FALSE), selected=if (!is.null(trial$flag) && !is.na(trial$flag)) {trial$flag} else {FALSE}, inline=TRUE),
                         textInput("review_user_submitting", "User Submitting")
                  ),
-                 column(width=4,
-                        sliderInput("review_score", "Review Score", min=0, max=100, step=1, value=if (!is.null(trial$rating) && !is.na(trial$rating)) {trial$rating} else {50} )
-                 ),
                  column(width=6,
                         textAreaInput("review_comments", "Comments", height="200px", value=if (!is.null(trial$note) && !is.na(trial$note)) {trial$note} else {""}) %>%
                           shiny::tagAppendAttributes(style = 'width: 100%;')
@@ -541,10 +537,9 @@ server <- function(input, output, session) {
       trial <- trials_filtered()[input$trials_rows_all[[currentRow()]],]
       
       ### TODO REQUIRE QUOTATION ESCAPE ###
-      query <- paste0("INSERT INTO trk_reviews (trial_id, flag, rating, user_submitted, note) VALUES (",
+      query <- paste0("INSERT INTO trk_reviews (trial_id, flag, user_submitted, note) VALUES (",
               paste0("'", gsub("'", "''", trial$trial_id, fixed=TRUE), "', "),
               paste0("'", as.character(input$review_selection), "', "),
-              paste0(as.character(input$review_score), ", "),
               paste0("'", gsub("'", "''", input$review_user_submitting, fixed=TRUE), "', "),
               paste0("'", gsub("'", "''", input$review_comments, fixed=TRUE), "'"),
             ");"
@@ -562,11 +557,11 @@ server <- function(input, output, session) {
       if (length(which(trials_new$trial_id == trial$trial_id)) > 0 && length(which(trials_subset_new$trial_id == trial$trial_id)) > 0) {
         
         row_value_trials <- which(trials_new$trial_id == trial$trial_id)[1]
-        trials_new[row_value_trials, c("flag", "rating", "user_submitted", "note", "review_date_created")] <- c(as.logical(input$review_selection), input$review_score, input$review_user_submitting, input$review_comments, as.character(Sys.time()))
+        trials_new[row_value_trials, c("flag", "user_submitted", "note", "review_date_created")] <- c(as.logical(input$review_selection), input$review_score, input$review_user_submitting, input$review_comments, as.character(Sys.time()))
         trials_reactive(trials_new)
         
         row_value_trials_subset <- which(trials_subset_new$trial_id == trial$trial_id)[1]
-        trials_subset_new[row_value_trials_subset, c("flag", "rating")] <- c(as.logical(input$review_selection), input$review_score)
+        trials_subset_new[row_value_trials_subset, c("flag")] <- c(as.logical(input$review_selection), input$review_score)
         trials_subset_reactive(trials_subset_new)
       }
       
