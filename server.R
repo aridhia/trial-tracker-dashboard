@@ -108,8 +108,9 @@ server <- function(input, output, session) {
       strsplit(" + ", fixed = TRUE) %>% reduce(c) %>%
       trimws() %>% sort()
     treatment_count_df <- as.data.frame(table(treatments))
+    treatment_count_df <- treatment_count_df[!(treatment_count_df$treatments == "Other" | treatment_count_df$treatments == "SOC"),]
     treatment_count_df_sorted <- treatment_count_df[order(-treatment_count_df$Freq),]
-    treatment_count_df_sorted <- head(treatment_count_df_sorted, 20)
+    treatment_count_df_sorted <- head(treatment_count_df_sorted, 10)
     return(treatment_count_df_sorted)
   }
   
@@ -121,7 +122,7 @@ server <- function(input, output, session) {
       trimws() %>% sort()
     outcomes_count_df <- as.data.frame(table(outcomes))
     outcomes_count_df_sorted <- outcomes_count_df[order(-outcomes_count_df$Freq),]
-    outcomes_count_df_sorted <- head(outcomes_count_df_sorted, 20)
+    outcomes_count_df_sorted <- head(outcomes_count_df_sorted, 10)
     return(outcomes_count_df_sorted)
   }
 
@@ -654,9 +655,9 @@ server <- function(input, output, session) {
                      text = ~paste('</br> No. of Trials: ', Freq)
       )
       
-      fig <- fig %>% layout(title = "No. of Trials by Outcome (Top 20)",
-                            xaxis = list(title = "Outcome"),
-                            yaxis = list(title = "No. of Trials"))
+      fig <- fig %>% layout(title = "No. of Trials by Outcome (Top 10)",
+                            xaxis = list(title = "No. of Trials"),
+                            yaxis = list(title = "Outcomes"))
     })
     
     output$noOfTreatments <- renderPlotly({
@@ -670,9 +671,9 @@ server <- function(input, output, session) {
                      text = ~paste('</br> No. of Trials: ', Freq)
       )
       
-      fig <- fig %>% layout(title = "No. of Trials by Treatment (Top 20)",
-                            xaxis = list(title = "Treatment"),
-                            yaxis = list(title = "No. of Trials"))
+      fig <- fig %>% layout(title = "No. of Trials by Treatment (Top 10)",
+                            xaxis = list(title = "No. of Trials"),
+                            yaxis = list(title = "Treatments"))
     })
     
   
