@@ -28,6 +28,15 @@ ui <- fluidPage(
 		    table.dataTable.display tbody tr.even.rejected {
 		      background-color: #ffe0e0;
 		    }
+		    .dataTables_info {
+		        display: inline-block;
+            max-width: 100%;
+            margin-bottom: 5px;
+            font-weight: bold;
+		    }
+		    table.dataTable {
+		      margin: 10px auto !important
+		    }
       ")
     )
   ),
@@ -40,11 +49,14 @@ ui <- fluidPage(
         uiOutput("input_selection_sidepanel"),
         
       ),
+      
       mainPanel(
+        
         div(id="loading_screen", style="display: inline-block",
               h4(style="text-align: center; position: relative; top: 235px; font-size: 200%", "Loading trial data..."),
               img(src='loading_gif.gif')
             ),
+        div(class="dataTables_info", id="DataTables_Table_0_info",),
         dataTableOutput("trials")
       )
     ),

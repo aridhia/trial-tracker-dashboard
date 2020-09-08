@@ -217,6 +217,7 @@ server <- function(input, output, session) {
     colnames = c("Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "Treatment", "Outcome", "Phase", "Flag"),
     plugins = "ellipsis", 
     options = list(pageLength = 25,
+                   dom = 'iftpl',
                    columnDefs = list(
                       list(
                        targets = c(1,2,3,4,5,6,7,8,9,10,11),
