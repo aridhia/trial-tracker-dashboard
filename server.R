@@ -42,10 +42,12 @@ server <- function(input, output, session) {
            number_of_arms_final,
            corrected_treatment_name,
            outcome,
+           phase,
            flag)
   
   expected_enrollment_max <- max(trials_subset$expected_enrollment, na.rm = TRUE)
   study_design_levels <- levels(factor(trials_subset$study_design))
+  phases <- levels(factor(trials_subset$phase))
   completion_date_min <- min(as.Date(trials_subset$date_primary_completion), na.rm = TRUE)
   completion_date_max <- max(as.Date(trials_subset$date_primary_completion), na.rm = TRUE)
   today <- Sys.Date()
@@ -97,7 +99,13 @@ server <- function(input, output, session) {
     }
     return(FALSE)
   }
-  shinyjs::addClass(id="loading_screen", class="hidden")
+  
+  phase_filter_function <- function(entry, phase) {
+    if (is.null(phase)) {return(TRUE)}
+    phases <- levels(factor(entry))
+    return (any(phase %in% phases))
+  }
+  
   
   
   get_count_of_treatments <- function(){
@@ -136,6 +144,8 @@ server <- function(input, output, session) {
   outcomes_count_df <- get_count_of_outcomes()
   completed_trials = get_completed_trials()
   
+  shinyjs::addClass(id="loading_screen", class="hidden")
+  
   ###############################################################################################
   ###############################################################################################
   ###############################################################################################
@@ -149,12 +159,13 @@ server <- function(input, output, session) {
       hr(),
       checkboxGroupInput("flagged_trails", label="Display trials with flag:", inline=TRUE, choices=list("Accepted"= TRUE, "Rejected"=FALSE, "Unreviewed"="NA"), selected = c(TRUE, FALSE, "NA")),
       hr(),
-      sliderInput("expected_enrollment", "Expected enrollment size at least:", min = 0, max = 4000, step = 100, value=80),
+      sliderInput("expected_enrollment", "Expected Enrollment Size at Least:", min = 0, max = 4000, step = 100, value=80),
       checkboxInput("enrollment_na_show", label="Display trials without expected enrollment", value = FALSE),
       hr(),
-      selectInput("study_design", "Study design:", choices = append(study_design_levels, "All", after=0), selected = "All"),
+      selectInput("study_design", "Study Design:", choices = append(study_design_levels, "All", after=0), selected = "All"),
+      selectInput("trial_phase", "Trial Phase:", choices = phases, multiple = TRUE, selected = NULL),
       hr(),
-      dateRangeInput("completion_date", "Completion date between:", start = today, end = today_plus_one_month, min = completion_date_min, max = completion_date_max),
+      dateRangeInput("completion_date", "Completion Date Between:", start = today, end = today_plus_one_month, min = completion_date_min, max = completion_date_max),
       checkboxInput("completion_date_toggle", label="Filter by Completion Date", value = FALSE),
       hr(),
       selectInput("treatment", "Treatment:", choices = treatments, multiple = TRUE, selected = NULL),
@@ -176,6 +187,7 @@ server <- function(input, output, session) {
     } else {
       trials_subset_reactive() %>% filter((expected_enrollment >= input$expected_enrollment) | (input$enrollment_na_show & is.na(expected_enrollment)),
                                study_design_final %in% input$study_design | input$study_design == "All",
+                               as.logical(lapply(phase, phase_filter_function, input$trial_phase)),
                                as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2] | !input$completion_date_toggle,
                                as.logical(lapply(outcome, outcome_filter_function, input$outcome, input$outcome_andor)),
                                as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, input$treatment_andor)),
@@ -190,6 +202,7 @@ server <- function(input, output, session) {
     } else {
       trials_reactive() %>% filter(expected_enrollment >= input$expected_enrollment,
                                study_design_final %in% input$study_design | input$study_design == "All",
+                               as.logical(lapply(phase, phase_filter_function, input$trial_phase)),
                                as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2] | !input$completion_date_toggle,
                                as.logical(lapply(outcome, outcome_filter_function, input$outcome, input$outcome_andor)),
                                as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, input$treatment_andor)),
@@ -201,16 +214,16 @@ server <- function(input, output, session) {
   output$trials <- renderDataTable(
     isolate(trials_subset_filtered()), # Isolated this so that data table is updated via 'proxy' instead
     rownames=TRUE,
-    colnames = c("Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "Treatment", "Outcome", "Flag"),
+    colnames = c("Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "Treatment", "Outcome", "Phase", "Flag"),
     plugins = "ellipsis", 
     options = list(pageLength = 25,
                    columnDefs = list(
                       list(
-                       targets = c(1,2,3,4,5,6,7,8,9,10),
+                       targets = c(1,2,3,4,5,6,7,8,9,10,11),
                        render = JS("$.fn.dataTable.render.ellipsis( 15, false )")
                       ),
                       list(
-                        targets = 11,
+                        targets = 12,
                         render = JS("function(data, type, row) {
                                       if (typeof(data) == 'undefined' || data == null) {return(\"\")};
                                       if (data) {return (\"Accepted\")};
@@ -221,10 +234,10 @@ server <- function(input, output, session) {
                    ),
                    rowCallback = JS("function( row, data, dataIndex ) {
                                         console.log(data);
-                                        if (typeof(data[11]) != 'undefined' && data[11] != null){
-                                          if ( data[11] ) {
+                                        if (typeof(data[12]) != 'undefined' && data[12] != null){
+                                          if ( data[12] ) {
                                             $(row).addClass( 'accepted' );
-                                          } else if ( !data[11] ) {
+                                          } else if ( !data[12] ) {
                                             $(row).addClass( 'rejected' );
                                           }
                                         }
@@ -291,7 +304,6 @@ server <- function(input, output, session) {
   observeEvent(currentRow(), {
     shinyjs::runjs("modal_scroll_y = $('#shiny-modal')[0].scrollTop")
     trial <- trials_filtered()[input$trials_rows_all[[currentRow()]],]
-    # print(trial)
     showModal(trialModal(trial, fade=modal_fade()))
     shinyjs::runjs("$('#shiny-modal')[0].scrollTop = modal_scroll_y")
     modal_fade(FALSE)
@@ -332,14 +344,14 @@ server <- function(input, output, session) {
           if (trial$flag) {
             fluidRow(
               column(width=2, trial$trial_id),
-              column(width=1, div(icon("check"), div("  ", style="white-space: pre;"), trial$rating, style="font-size: 200%; max-height: 1px; display: flex; align-items: center;")),
+              column(width=1, div(icon("check"), div("  ", style="white-space: pre;"), style="font-size: 200%; max-height: 1px; display: flex; align-items: center;")),
               column(width=3, paste0("Accepted by: ", trial$user_submitted )),
               style="display: flex; align-items: center;"
             )
           } else {
             fluidRow(
               column(width=2, trial$trial_id),
-              column(width=1, div(icon("times"), div("  ", style="white-space: pre;"), trial$rating, style="font-size: 200%; max-height: 1px; display: flex; align-items: center;")),
+              column(width=1, div(icon("times"), div("  ", style="white-space: pre;"), style="font-size: 200%; max-height: 1px; display: flex; align-items: center;")),
               column(width=3, paste0("Rejected by: ", trial$user_submitted )),
               style="display: flex; align-items: center;"
             )
@@ -557,7 +569,7 @@ server <- function(input, output, session) {
       if (length(which(trials_new$trial_id == trial$trial_id)) > 0 && length(which(trials_subset_new$trial_id == trial$trial_id)) > 0) {
         
         row_value_trials <- which(trials_new$trial_id == trial$trial_id)[1]
-        trials_new[row_value_trials, c("flag", "user_submitted", "note", "review_date_created")] <- c(as.logical(input$review_selection), input$review_score, input$review_user_submitting, input$review_comments, as.character(Sys.time()))
+        trials_new[row_value_trials, c("flag", "user_submitted", "note", "review_date_created")] <- c(as.logical(input$review_selection), input$review_user_submitting, input$review_comments, as.character(Sys.time()))
         trials_reactive(trials_new)
         
         row_value_trials_subset <- which(trials_subset_new$trial_id == trial$trial_id)[1]
@@ -582,7 +594,7 @@ server <- function(input, output, session) {
           tags$h4(class="modal-title",
             fluidRow(
               column(width=2, trial$trial_id),
-              column(width=1, div(icon("check"), div("  ", style="white-space: pre;"), input$review_score, style="font-size: 200%; max-height: 1px; display: flex; align-items: center;")),
+              column(width=1, div(icon("check"), div("  ", style="white-space: pre;"), style="font-size: 200%; max-height: 1px; display: flex; align-items: center;")),
               column(width=3, paste0("Accepted by: ", input$review_user_submitting )),
               style="display: flex; align-items: center;"
             )
@@ -593,7 +605,7 @@ server <- function(input, output, session) {
           tags$h4(class="modal-title",
             fluidRow(
               column(width=2, trial$trial_id),
-              column(width=1, div(icon("times"), div("  ", style="white-space: pre;"), input$review_score, style="font-size: 200%; max-height: 1px; display: flex; align-items: center;")),
+              column(width=1, div(icon("times"), div("  ", style="white-space: pre;"), style="font-size: 200%; max-height: 1px; display: flex; align-items: center;")),
               column(width=3, paste0("Rejected by: ", input$review_user_submitting )),
               style="display: flex; align-items: center;"
             ),
