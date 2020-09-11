@@ -687,6 +687,8 @@ server <- function(input, output, session) {
       fig <- fig %>% layout(title = "No. of Trials by Months until Completion",
                            xaxis = list(title = "Months"),
                            yaxis = list(title = "No. of Trials"))
+      
+      return(fig)
     })
     
     
@@ -694,5 +696,82 @@ server <- function(input, output, session) {
       paste("Number of Completed Trials: ", completed_trials)
     }
     )
+    
+    ## PLOTLY CLICK TO FILTER ## 
+    shinyjs::runjs(HTML(
+      "var intv = setInterval(function(){
+        var $el = $('#noOfMonths');
+        if ( $el.length > 0 ) {
+          if (typeof $el[0].on !== 'undefined') {
+            clearInterval(intv);
+            $el[0].on('plotly_click', function(data){
+                console.log(data.points[0].x);
+             });
+          }
+        }
+      }, 500);"
+    ))
+    
+    shinyjs::runjs(HTML(
+      "var intv = setInterval(function(){
+        var $el = $('#noOfTreatments');
+        if ( $el.length > 0 ) {
+          if (typeof $el[0].on !== 'undefined') {
+            clearInterval(intv);
+            $el[0].on('plotly_click', function(data){
+                Shiny.setInputValue('noOfTreatments_click', data.points[0].y);
+                // console.log(data.points[0].y);
+             });
+          }
+        }
+      }, 500);"
+    ))
+    
+    observeEvent(input$noOfTreatments_click, {
+      updateCheckboxGroupInput(session, "flagged_trails", selected = c(TRUE, FALSE, "NA"))
+      updateSliderInput(session,"expected_enrollment", value=80)
+      updateCheckboxInput(session,"enrollment_na_show", value = FALSE)
+      updateSelectInput(session,"study_design", selected = "All")
+      updateSelectInput(session,"trial_phase", selected = NULL)
+      # updateDateRangeInput(session,"completion_date", start = today, end = today_plus_one_month, min = completion_date_min, max = completion_date_max)
+      updateCheckboxInput(session,"completion_date_toggle", value = FALSE)
+      updateSelectInput(session,"treatment", selected = input$noOfTreatments_click)
+      # updateRadioButtons(session,"treatment_andor", selected = "AND")
+      updateSelectInput(session, "outcome", selected = NULL)
+      # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
+      
+      updateNavbarPage(session, "navbar", "Trial Selection")
+    })
+    
+    shinyjs::runjs(HTML(
+      "var intv = setInterval(function(){
+        var $el = $('#noOfOutcomes');
+        if ( $el.length > 0 ) {
+          if (typeof $el[0].on !== 'undefined') {
+            clearInterval(intv);
+            $el[0].on('plotly_click', function(data){
+                Shiny.setInputValue('noOfOutcomes_click', data.points[0].y);
+                //console.log(data.points[0].y);
+             });
+          }
+        }
+      }, 500);"
+    ))
+    
+    observeEvent(input$noOfOutcomes_click, {
+      updateCheckboxGroupInput(session, "flagged_trails", selected = c(TRUE, FALSE, "NA"))
+      updateSliderInput(session,"expected_enrollment", value=80)
+      updateCheckboxInput(session,"enrollment_na_show", value = FALSE)
+      updateSelectInput(session,"study_design", selected = "All")
+      updateSelectInput(session,"trial_phase", selected = NULL)
+      # updateDateRangeInput(session,"completion_date", start = today, end = today_plus_one_month, min = completion_date_min, max = completion_date_max)
+      updateCheckboxInput(session,"completion_date_toggle", value = FALSE)
+      updateSelectInput(session,"treatment", selected = NULL)
+      # updateRadioButtons(session,"treatment_andor", selected = "AND")
+      updateSelectInput(session, "outcome", selected = input$noOfOutcomes_click)
+      # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
+      
+      updateNavbarPage(session, "navbar", "Trial Selection")
+    })
 
 }
