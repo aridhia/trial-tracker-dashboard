@@ -697,7 +697,10 @@ server <- function(input, output, session) {
     }
     )
     
-    ## PLOTLY CLICK TO FILTER ## 
+    ## PLOTLY CLICK TO FILTER ##
+    ## Have to run intervals in javascript until the plotly plot has been rendered
+    ## otherwise there is no data. Once plot has been rendered attaches an event
+    ## that returns the closest data when clicked as a shiny input
     shinyjs::runjs(HTML(
       "var intv = setInterval(function(){
         var $el = $('#noOfMonths');
@@ -705,12 +708,31 @@ server <- function(input, output, session) {
           if (typeof $el[0].on !== 'undefined') {
             clearInterval(intv);
             $el[0].on('plotly_click', function(data){
-                console.log(data.points[0].x);
+                Shiny.setInputValue('noOfMonths_click', data.points[0].x);
+                //console.log(data.points[0].x);
              });
           }
         }
       }, 500);"
     ))
+    
+    observeEvent(input$noOfMonths_click, {
+      updateCheckboxGroupInput(session, "flagged_trails", selected = c(TRUE, FALSE, "NA"))
+      updateSliderInput(session,"expected_enrollment", value=80)
+      updateCheckboxInput(session,"enrollment_na_show", value = FALSE)
+      updateSelectInput(session,"study_design", selected = "All")
+      updateSelectInput(session,"trial_phase", selected = NULL)
+      updateDateRangeInput(session,"completion_date", start = Sys.Date() %m+% months(as.numeric(input$noOfMonths_click)-1), end = Sys.Date() %m+% months(as.numeric(input$noOfMonths_click)))
+      updateCheckboxInput(session,"completion_date_toggle", value = TRUE)
+      updateSelectInput(session,"treatment", selected = NULL)
+      # updateRadioButtons(session,"treatment_andor", selected = "AND")
+      updateSelectInput(session, "outcome", selected = NULL)
+      # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
+      
+      updateNavbarPage(session, "navbar", "Trial Selection")
+    })
+    
+    Sys.Date() %m+% months(1)
     
     shinyjs::runjs(HTML(
       "var intv = setInterval(function(){
