@@ -234,7 +234,7 @@ server <- function(input, output, session) {
                       )
                    ),
                    rowCallback = JS("function( row, data, dataIndex ) {
-                                        console.log(data);
+                                        // console.log(data);
                                         if (typeof(data[12]) != 'undefined' && data[12] != null){
                                           if ( data[12] ) {
                                             $(row).addClass( 'accepted' );
@@ -599,7 +599,7 @@ server <- function(input, output, session) {
               column(width=3, paste0("Accepted by: ", input$review_user_submitting )),
               style="display: flex; align-items: center;"
             )
-          ), '\';console.log($("#shiny-modal")[0]); console.log($("#shiny-modal")[0].children[0].children[0].children[0].innerHTML)'
+          ), '\'; //console.log($("#shiny-modal")[0]); console.log($("#shiny-modal")[0].children[0].children[0].children[0].innerHTML)'
         )))
       } else {
         shinyjs::runjs(gsub("[\r\n]", "", paste0('$("#shiny-modal")[0].children[0].children[0].children[0].innerHTML = \'',
@@ -610,7 +610,7 @@ server <- function(input, output, session) {
               column(width=3, paste0("Rejected by: ", input$review_user_submitting )),
               style="display: flex; align-items: center;"
             ),
-          ), '\';console.log($("#shiny-modal")[0]); console.log($("#shiny-modal")[0].children[0].children[0].children[0].innerHTML)'
+          ), '\'; //console.log($("#shiny-modal")[0]); console.log($("#shiny-modal")[0].children[0].children[0].children[0].innerHTML)'
         )))
       }
         
@@ -721,12 +721,12 @@ server <- function(input, output, session) {
       updateSliderInput(session,"expected_enrollment", value=80)
       updateCheckboxInput(session,"enrollment_na_show", value = FALSE)
       updateSelectInput(session,"study_design", selected = "All")
-      updateSelectInput(session,"trial_phase", selected = NULL)
+      updateSelectInput(session,"trial_phase", selected = character(0))
       updateDateRangeInput(session,"completion_date", start = Sys.Date() %m+% months(as.numeric(input$noOfMonths_click)-1), end = Sys.Date() %m+% months(as.numeric(input$noOfMonths_click)))
       updateCheckboxInput(session,"completion_date_toggle", value = TRUE)
-      updateSelectInput(session,"treatment", selected = NULL)
+      updateSelectInput(session,"treatment", selected = character(0))
       # updateRadioButtons(session,"treatment_andor", selected = "AND")
-      updateSelectInput(session, "outcome", selected = NULL)
+      updateSelectInput(session, "outcome", selected = character(0))
       # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
       
       updateNavbarPage(session, "navbar", "Trial Selection")
@@ -754,12 +754,12 @@ server <- function(input, output, session) {
       updateSliderInput(session,"expected_enrollment", value=80)
       updateCheckboxInput(session,"enrollment_na_show", value = FALSE)
       updateSelectInput(session,"study_design", selected = "All")
-      updateSelectInput(session,"trial_phase", selected = NULL)
+      updateSelectInput(session,"trial_phase", selected = character(0))
       # updateDateRangeInput(session,"completion_date", start = today, end = today_plus_one_month, min = completion_date_min, max = completion_date_max)
       updateCheckboxInput(session,"completion_date_toggle", value = FALSE)
       updateSelectInput(session,"treatment", selected = input$noOfTreatments_click)
       # updateRadioButtons(session,"treatment_andor", selected = "AND")
-      updateSelectInput(session, "outcome", selected = NULL)
+      updateSelectInput(session, "outcome", selected = character(0))
       # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
       
       updateNavbarPage(session, "navbar", "Trial Selection")
@@ -785,10 +785,10 @@ server <- function(input, output, session) {
       updateSliderInput(session,"expected_enrollment", value=80)
       updateCheckboxInput(session,"enrollment_na_show", value = FALSE)
       updateSelectInput(session,"study_design", selected = "All")
-      updateSelectInput(session,"trial_phase", selected = NULL)
+      updateSelectInput(session,"trial_phase", selected = character(0))
       # updateDateRangeInput(session,"completion_date", start = today, end = today_plus_one_month, min = completion_date_min, max = completion_date_max)
       updateCheckboxInput(session,"completion_date_toggle", value = FALSE)
-      updateSelectInput(session,"treatment", selected = NULL)
+      updateSelectInput(session,"treatment", selected = character(0))
       # updateRadioButtons(session,"treatment_andor", selected = "AND")
       updateSelectInput(session, "outcome", selected = input$noOfOutcomes_click)
       # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
