@@ -2,35 +2,35 @@ options(connectionObserver = NULL)
 
 
 server <- function(input, output, session) {
-  
+
   # fix for mini_app greying-out after 10 min of inactivity
   autoInvalidate <- reactiveTimer(30000)
   observe({
     autoInvalidate()
     cat(".")
   })
-  
+
   ###############################################################################################
   ##################################    MOVED FROM GLOBAL.R    ##################################
   ###############################################################################################
-  
+
   date_data_transfer <- "2020-07-29"
   con                <- ''
-  
+
   # Set Variables for Enviorment
   if(exists("xap.conn")){
     con <- xap.conn
   } else {
     con <- dbConnect(RPostgres::Postgres(), dbname=Sys.getenv("PGDATABASE"), host=Sys.getenv("PGHOST"), user=Sys.getenv("PGUSER"), password=Sys.getenv("PGPASSWORD"))
   }
-  
+
   trials_original = RPostgres::dbGetQuery(con, "SELECT * FROM combined_view;")
-  
+
   trials <- trials_original %>%
-    select(-c(state_name, state_lon, state_lat, country_name, iso3_code)) 
+    select(-c(state_name, state_lon, state_lat, country_name, iso3_code))
   # %>% unique() # unique not working anymore with new columns (?)
   trials <- trials[!duplicated(trials$trial_id), ]
-  
+
   trials_subset <- trials %>%
     select(trial_id,
            scientific_title,
@@ -44,7 +44,7 @@ server <- function(input, output, session) {
            outcome,
            phase,
            flag)
-  
+
   expected_enrollment_max <- max(trials_subset$expected_enrollment, na.rm = TRUE)
   study_design_levels <- levels(factor(trials_subset$study_design))
   phases <- levels(factor(trials_subset$phase))
@@ -52,43 +52,43 @@ server <- function(input, output, session) {
   completion_date_max <- max(as.Date(trials_subset$date_primary_completion), na.rm = TRUE)
   today <- Sys.Date()
   today_plus_one_month <- Sys.Date() %m+% months(1)
-  treatments <- trials_subset$corrected_treatment_name %>% 
-    strsplit(", ") %>% reduce(c) %>% 
+  treatments <- trials_subset$corrected_treatment_name %>%
+    strsplit(", ") %>% reduce(c) %>%
     strsplit(" + ", fixed = TRUE) %>% reduce(c) %>%
     trimws() %>%
     unique() %>% sort()
-  outcomes <- trials_subset$outcome %>% 
-    strsplit(", ") %>% reduce(c) %>% 
+  outcomes <- trials_subset$outcome %>%
+    strsplit(", ") %>% reduce(c) %>%
     trimws() %>%
     unique() %>% sort()
-  
+
   outcome_filter_function <- function(entry, outcomes, logic = "AND") {
     if (is.null(outcomes)) {return(TRUE)}
-    
+
     entry_split <- entry %>%
       strsplit(", ") %>% reduce(c)
-    
+
     if (logic == "AND") {
       return (all(outcomes %in% entry_split))
     } else if (logic == "OR") {
       return (any(outcomes %in% entry_split))
     }
   }
-  
+
   treatment_filter_function <- function(entry, treatments, logic = "AND") {
     if (is.null(treatments)) {return(TRUE)}
-    
+
     entry_split <- entry %>%
-      strsplit(", ") %>% reduce(c) %>% 
+      strsplit(", ") %>% reduce(c) %>%
       strsplit(" + ", fixed = TRUE) %>% reduce(c)
-    
+
     if (logic == "AND") {
       return (all(treatments %in% entry_split))
     } else if (logic == "OR") {
       return (any(treatments %in% entry_split))
     }
   }
-  
+
   review_filter_function <- function(entry, reviewed) {
     if (is.null(reviewed)) {return(FALSE)}
     if (!is.na(entry)) {
@@ -99,34 +99,38 @@ server <- function(input, output, session) {
     }
     return(FALSE)
   }
-  
+
   phase_filter_function <- function(entry, phase) {
     if (is.null(phase)) {return(TRUE)}
     phases <- levels(factor(entry))
     return (any(phase %in% phases))
   }
-  
-  
-  
+
+
+
   get_count_of_treatments <- function(){
-    
-    treatments <- trials_subset$corrected_treatment_name %>% 
-      strsplit(", ") %>% reduce(c) %>% 
-      strsplit(" + ", fixed = TRUE) %>% reduce(c) %>%
-      trimws() %>% sort()
+
+    treatments <- trials_subset %>% separate_rows(corrected_treatment_name, sep=", ") %>%
+      separate_rows(corrected_treatment_name, sep=" \\+ ")  %>%
+      group_by(trial_id, corrected_treatment_name)
+    treatments <- summarise(treatments, count=n())
+    treatments <- treatments$corrected_treatment_name
+
     treatment_count_df <- as.data.frame(table(treatments))
     treatment_count_df <- treatment_count_df[!(treatment_count_df$treatments == "Other" | treatment_count_df$treatments == "SOC"),]
     treatment_count_df_sorted <- treatment_count_df[order(-treatment_count_df$Freq),]
     treatment_count_df_sorted <- head(treatment_count_df_sorted, 10)
     return(treatment_count_df_sorted)
   }
-  
+
   get_count_of_outcomes <- function(){
 
-    outcomes <- trials_subset$outcome %>% 
-      strsplit(", ") %>% reduce(c) %>% 
-      strsplit(" + ", fixed = TRUE) %>% reduce(c) %>%
-      trimws() %>% sort()
+    outcomes <- trials_subset %>% separate_rows(outcome, sep=", ") %>%
+      separate_rows(outcome, sep=" \\+ ")  %>%
+      group_by(trial_id, outcome)
+    outcomes <- summarise(outcomes, count=n())
+    outcomes <- outcomes$outcome
+
     outcomes_count_df <- as.data.frame(table(outcomes))
     outcomes_count_df_sorted <- outcomes_count_df[order(-outcomes_count_df$Freq),]
     outcomes_count_df_sorted <- head(outcomes_count_df_sorted, 10)
@@ -143,15 +147,15 @@ server <- function(input, output, session) {
   treatment_count_df <- get_count_of_treatments()
   outcomes_count_df <- get_count_of_outcomes()
   completed_trials = get_completed_trials()
-  
+
   shinyjs::addClass(id="loading_screen", class="hidden")
-  
+
   ###############################################################################################
   ###############################################################################################
   ###############################################################################################
-  
-  
-  
+
+
+
   ## Pulled from UI because these depend on data being loaded (which is now removed from Global.r)
   output$input_selection_sidepanel <- renderUI({
     tagList(
@@ -159,8 +163,8 @@ server <- function(input, output, session) {
       hr(),
       checkboxGroupInput("flagged_trails", label="Display trials with flag:", inline=TRUE, choices=list("Accepted"= TRUE, "Rejected"=FALSE, "Unreviewed"="NA"), selected = c(TRUE, FALSE, "NA")),
       hr(),
-      sliderInput("expected_enrollment", "Expected Enrollment Size at Least:", min = 0, max = 4000, step = 100, value=80),
-      checkboxInput("enrollment_na_show", label="Display trials without expected enrollment", value = FALSE),
+      sliderInput("expected_enrollment", "Expected No. of Patients Size at Least:", min = 0, max = 4000, step = 100, value=80),
+      checkboxInput("enrollment_na_show", label="Display trials without Expected No. of Patients", value = FALSE),
       hr(),
       selectInput("study_design", "Study Design:", choices = append(study_design_levels, "All", after=0), selected = "All"),
       selectInput("trial_phase", "Trial Phase:", choices = phases, multiple = TRUE, selected = NULL),
@@ -175,12 +179,12 @@ server <- function(input, output, session) {
       radioButtons("outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
     )
   })
-  
+
   ## trails / trials_subset now need to be reactive to respond to data changing
   trials_reactive <- reactiveVal(trials)
   trials_subset_reactive <- reactiveVal(trials_subset)
-  
-                             
+
+
   trials_subset_filtered <- reactive({
     if (is.null(input$expected_enrollment)) {
       trials_subset_reactive() # prevents filter error on first render but allows initial generation of datatable (which is isolated so only occurs once)
@@ -195,7 +199,7 @@ server <- function(input, output, session) {
       )
     }
   })
-  
+
   trials_filtered <- reactive({
     if (is.null(input$expected_enrollment)) {
       trials_reactive() # prevents filter error on first render but allows initial generation of datatable (which is isolated)
@@ -215,7 +219,7 @@ server <- function(input, output, session) {
     isolate(trials_subset_filtered()), # Isolated this so that data table is updated via 'proxy' instead
     rownames=TRUE,
     colnames = c("Trial Id", "Title", "Institution", "Completion", "Size", "Patient setting", "Study design", "Arms", "Treatment", "Outcome", "Phase", "Flag"),
-    plugins = "ellipsis", 
+    plugins = "ellipsis",
     options = list(pageLength = 25,
                    dom = 'iftpl',
                    columnDefs = list(
@@ -244,18 +248,18 @@ server <- function(input, output, session) {
                                         }
                                       }"
                    )
-                   ), 
+                   ),
     selection = 'single',
     class = "display nowrap",
     server = TRUE # allows reloading of data.
   )
-  
+
   # This proxy datatable allows updating data/selected items dynamically without rerendering the whole table again
   proxy <- dataTableProxy('trials') # creates a proxy of the datatable to allow manipulation (ie data editing) without regenerating the whole table
   observeEvent( trials_subset_filtered(), {
     replaceData(proxy, trials_subset_filtered(), resetPaging = FALSE, clearSelection = FALSE) # update the data when trials_subset_filtered() is edited
   })
-  
+
   # shinyjs::runjs(
   #   "console.log(\"RUNNING JS... \");
   #   console.log($('#trials'));
@@ -270,14 +274,14 @@ server <- function(input, output, session) {
   #     }
   #   } )"
   # )
-  
+
   currentRow <- reactiveVal(NULL)
   modal_fade <- reactiveVal(TRUE)
   review_display_edge_case <- reactiveVal(FALSE)
-  
+
   ignore_row_selected <- reactiveVal(FALSE) # toggle to allow ignoring modal generation on particular actions
   observeEvent(input$trials_rows_selected, {
-    if (ignore_row_selected()) {ignore_row_selected(FALSE)} 
+    if (ignore_row_selected()) {ignore_row_selected(FALSE)}
     else {
       modal_fade(TRUE)
       if (input$trials_rows_selected) {
@@ -300,8 +304,8 @@ server <- function(input, output, session) {
       }
     }
   })
-  
-  
+
+
   observeEvent(currentRow(), {
     shinyjs::runjs("modal_scroll_y = $('#shiny-modal')[0].scrollTop")
     trial <- trials_filtered()[input$trials_rows_all[[currentRow()]],]
@@ -318,25 +322,25 @@ server <- function(input, output, session) {
       }
     }
   })
-               
+
   trialModal <- function(trial, fade) {
     # print(trial)
     arms <- tagList()
     if (!is.null(trial$number_of_arms_final) && !is.na(trial$number_of_arms_final)) {
       for (n in 1:min(trial$number_of_arms_final,7)) {
         arm_column <- paste0("tx", as.character(n), "_category")
-        
+
         if (!is.null(trial[[arm_column]]) && !is.na(trial[[arm_column]])) {
-          arms <- tagAppendChild(arms, column(2, 
+          arms <- tagAppendChild(arms, column(2,
                                          div(tags$b(paste0("Arm ", n))),
                                          div(trial[[arm_column]])
           ))
         }
       }
     }
-    
-    
-    
+
+
+
     modalDialog(
       title = {
         if (is.null(trial$flag) || is.na(trial$flag)) {
@@ -377,8 +381,8 @@ server <- function(input, output, session) {
             column(8,
                    div(tags$b("URL")),
                    div(tags$a(href=trial$url,target= "_blank", trial$url))
-  
-            ), 
+
+            ),
           ),
           tags$br(),
           fluidRow(
@@ -458,7 +462,7 @@ server <- function(input, output, session) {
                    div(tags$b("Phase")),
                    div(trial$phase)
             ),
-            	
+
             column(6,
                    div(tags$b("Outcomes")),
                    div(trial$outcome)
@@ -485,9 +489,9 @@ server <- function(input, output, session) {
                actionButton("review_submit", "Submit"),
                div(id="user_blank_error", class="hidden", style="color: #ce0000;", "User is required for submisson.")
                )
-      
+
       ),
-      
+
       footer = fluidRow(
                actionButton("modal_prev","Prev"),
                actionButton("modal_next","Next"),
@@ -497,25 +501,25 @@ server <- function(input, output, session) {
       fade = fade
     )
   }
-  
+
   observe({
     shinyjs::toggleState("modal_prev", currentRow() > 1)
   })
-  
+
   observe({
     shinyjs::toggleState("modal_next", (currentRow() < nrow(trials_filtered()) || (review_display_edge_case() && nrow(trials_filtered() != 0))))
   })
-  
+
   observe({
     input$trials_rows_selected
     shinyjs::toggleState("modal_prev", currentRow() > 1)
   })
-  
+
   observe({
     input$trials_rows_selected
     shinyjs::toggleState("modal_next", (currentRow() < nrow(trials_filtered()) || (review_display_edge_case() && nrow(trials_filtered() != 0))))
   })
-  
+
   observeEvent(input$modal_prev,{
     # edge case doesn't appear when moving back
     currentRow( currentRow() - 1 )
@@ -524,7 +528,7 @@ server <- function(input, output, session) {
     selectRows(proxy, input$trials_rows_all[[currentRow()]]) # moves selected row on datatable
     # TODO move page as well with this
   })
-  
+
   observeEvent(input$modal_next,{
     # fixing an edge case where currentRow disappears when
     # submitting a review which is not filtered to be displayed
@@ -540,15 +544,15 @@ server <- function(input, output, session) {
     selectRows(proxy, input$trials_rows_all[[currentRow()]]) # moves selected row on datatable
     # TODO move page as well with this
   })
-  
+
   observeEvent(input$review_submit, {
     if (is.null(input$review_user_submitting) || input$review_user_submitting == "") {
       shinyjs::removeClass(id="user_blank_error", class="hidden")
     } else {
       shinyjs::addClass(id="user_blank_error", class="hidden")
-      
+
       trial <- trials_filtered()[input$trials_rows_all[[currentRow()]],]
-      
+
       ### TODO REQUIRE QUOTATION ESCAPE ###
       query <- paste0("INSERT INTO trk_reviews (trial_id, flag, user_submitted, note) VALUES (",
               paste0("'", gsub("'", "''", trial$trial_id, fixed=TRUE), "', "),
@@ -560,24 +564,24 @@ server <- function(input, output, session) {
       print(query)
       res <- RPostgres::dbSendQuery(con,query)
       print(res)
-      
+
       # edge case where newly create review should is not included in filter. upsets all of the row counting.
       if (!(input$review_selection %in% input$flagged_trails)) {review_display_edge_case(TRUE)}
-      
+
       trials_new <- trials_reactive()
-      trials_subset_new <- trials_subset_reactive() 
-      
+      trials_subset_new <- trials_subset_reactive()
+
       if (length(which(trials_new$trial_id == trial$trial_id)) > 0 && length(which(trials_subset_new$trial_id == trial$trial_id)) > 0) {
-        
+
         row_value_trials <- which(trials_new$trial_id == trial$trial_id)[1]
         trials_new[row_value_trials, c("flag", "user_submitted", "note", "review_date_created")] <- c(as.logical(input$review_selection), input$review_user_submitting, input$review_comments, as.character(Sys.time()))
         trials_reactive(trials_new)
-        
+
         row_value_trials_subset <- which(trials_subset_new$trial_id == trial$trial_id)[1]
         trials_subset_new[row_value_trials_subset, c("flag")] <- c(as.logical(input$review_selection), input$review_score)
         trials_subset_reactive(trials_subset_new)
       }
-      
+
       if (input$review_selection) {
         shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[0].classList.remove("rejected")')
         shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[2].classList.remove("rejected")')
@@ -589,7 +593,7 @@ server <- function(input, output, session) {
         shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[0].classList.add("rejected")')
         shinyjs::runjs('$("#shiny-modal")[0].children[0].children[0].children[2].classList.add("rejected")')
       }
-      
+
       if (input$review_selection) {
         shinyjs::runjs(gsub("[\r\n]", "", paste0('$("#shiny-modal")[0].children[0].children[0].children[0].innerHTML = \'',
           tags$h4(class="modal-title",
@@ -613,18 +617,18 @@ server <- function(input, output, session) {
           ), '\';console.log($("#shiny-modal")[0]); console.log($("#shiny-modal")[0].children[0].children[0].children[0].innerHTML)'
         )))
       }
-        
-      
+
+
     }
-    
+
   })
-  
-  
-  
+
+
+
   #############################################################
   #### SUMMARY PAGE
   #############################################################
-  
+
     elapsed_months <- function(end_date, start_date) {
       final_months <- 0
       ed <- as.POSIXlt(end_date)
@@ -635,7 +639,7 @@ server <- function(input, output, session) {
       # }
       return(final_months)
     }
-    
+
     output$noOfOutcomes <- renderPlotly({
       fig <- plot_ly(outcomes_count_df,
                      y = ~reorder(outcomes, Freq),
@@ -646,12 +650,12 @@ server <- function(input, output, session) {
                      hoverinfo = 'text',
                      text = ~paste('</br> No. of Trials: ', Freq)
       )
-      
+
       fig <- fig %>% layout(title = "No. of Trials by Outcome (Top 10)",
                             xaxis = list(title = "No. of Trials"),
                             yaxis = list(title = "Outcomes"))
     })
-    
+
     output$noOfTreatments <- renderPlotly({
       fig <- plot_ly(treatment_count_df,
                      y = ~reorder(treatments, Freq),
@@ -662,13 +666,13 @@ server <- function(input, output, session) {
                      hoverinfo = 'text',
                      text = ~paste('</br> No. of Trials: ', Freq)
       )
-      
+
       fig <- fig %>% layout(title = "No. of Trials by Treatment (Top 10)",
                             xaxis = list(title = "No. of Trials"),
                             yaxis = list(title = "Treatments"))
     })
-    
-  
+
+
     output$noOfMonths <- renderPlotly({
       trials$no_of_months_until_readout = elapsed_months(trials$date_primary_completion, Sys.Date())
       no_of_months <- trials %>% filter(no_of_months_until_readout <= 12 & no_of_months_until_readout >= 1)
@@ -683,13 +687,13 @@ server <- function(input, output, session) {
         hoverinfo = 'text',
         text = ~paste('</br> No. of Trials: ', Freq)
       )
-      
+
       fig <- fig %>% layout(title = "No. of Trials by Months until Completion",
                            xaxis = list(title = "Months"),
                            yaxis = list(title = "No. of Trials"))
     })
-    
-    
+
+
     output$completedTrials <- renderText({
       paste("Number of Completed Trials: ", completed_trials)
     }
