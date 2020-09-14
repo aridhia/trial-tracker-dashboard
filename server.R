@@ -629,17 +629,6 @@ server <- function(input, output, session) {
   #### SUMMARY PAGE
   #############################################################
 
-    elapsed_months <- function(end_date, start_date) {
-      final_months <- 0
-      ed <- as.POSIXlt(end_date)
-      sd <- as.POSIXlt(start_date)
-      final_months <- 12 * (ed$year - sd$year) + (ed$mon - sd$mon)
-      # if (final_months >= 6 && final_months <= 12) {
-      #   final_months <- "7-12"
-      # }
-      return(final_months)
-    }
-
     output$noOfOutcomes <- renderPlotly({
       fig <- plot_ly(outcomes_count_df,
                      y = ~reorder(outcomes, Freq),
@@ -674,8 +663,9 @@ server <- function(input, output, session) {
 
 
     output$noOfMonths <- renderPlotly({
-      trials$no_of_months_until_readout = elapsed_months(trials$date_primary_completion, Sys.Date())
+      trials$no_of_months_until_readout <- (interval((Sys.Date()), (trials$date_primary_completion)) %/% months(1))
       no_of_months <- trials %>% filter(no_of_months_until_readout <= 12 & no_of_months_until_readout >= 1)
+      no_of_months$no_of_months_until_readout <- no_of_months$no_of_months_until_readout + 1
       counts <- table(readout_months = no_of_months$no_of_months_until_readout)
       counts_dataframe <- as.data.frame(counts)
 
@@ -691,7 +681,7 @@ server <- function(input, output, session) {
       fig <- fig %>% layout(title = "No. of Trials by Months until Completion",
                            xaxis = list(title = "Months"),
                            yaxis = list(title = "No. of Trials"))
-      
+
       return(fig)
     })
 
@@ -700,7 +690,7 @@ server <- function(input, output, session) {
       paste("Number of Completed Trials: ", completed_trials)
     }
     )
-    
+
     ## PLOTLY CLICK TO FILTER ##
     ## Have to run intervals in javascript until the plotly plot has been rendered
     ## otherwise there is no data. Once plot has been rendered attaches an event
@@ -719,7 +709,7 @@ server <- function(input, output, session) {
         }
       }, 500);"
     ))
-    
+
     observeEvent(input$noOfMonths_click, {
       updateCheckboxGroupInput(session, "flagged_trails", selected = c(TRUE, FALSE, "NA"))
       updateSliderInput(session,"expected_enrollment", value=80)
@@ -732,12 +722,12 @@ server <- function(input, output, session) {
       # updateRadioButtons(session,"treatment_andor", selected = "AND")
       updateSelectInput(session, "outcome", selected = character(0))
       # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
-      
+
       updateNavbarPage(session, "navbar", "Trial Selection")
     })
-    
+
     Sys.Date() %m+% months(1)
-    
+
     shinyjs::runjs(HTML(
       "var intv = setInterval(function(){
         var $el = $('#noOfTreatments');
@@ -752,7 +742,7 @@ server <- function(input, output, session) {
         }
       }, 500);"
     ))
-    
+
     observeEvent(input$noOfTreatments_click, {
       updateCheckboxGroupInput(session, "flagged_trails", selected = c(TRUE, FALSE, "NA"))
       updateSliderInput(session,"expected_enrollment", value=80)
@@ -765,10 +755,10 @@ server <- function(input, output, session) {
       # updateRadioButtons(session,"treatment_andor", selected = "AND")
       updateSelectInput(session, "outcome", selected = character(0))
       # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
-      
+
       updateNavbarPage(session, "navbar", "Trial Selection")
     })
-    
+
     shinyjs::runjs(HTML(
       "var intv = setInterval(function(){
         var $el = $('#noOfOutcomes');
@@ -783,7 +773,7 @@ server <- function(input, output, session) {
         }
       }, 500);"
     ))
-    
+
     observeEvent(input$noOfOutcomes_click, {
       updateCheckboxGroupInput(session, "flagged_trails", selected = c(TRUE, FALSE, "NA"))
       updateSliderInput(session,"expected_enrollment", value=80)
@@ -796,7 +786,7 @@ server <- function(input, output, session) {
       # updateRadioButtons(session,"treatment_andor", selected = "AND")
       updateSelectInput(session, "outcome", selected = input$noOfOutcomes_click)
       # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
-      
+
       updateNavbarPage(session, "navbar", "Trial Selection")
     })
 
