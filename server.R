@@ -238,7 +238,7 @@ server <- function(input, output, session) {
                       )
                    ),
                    rowCallback = JS("function( row, data, dataIndex ) {
-                                        console.log(data);
+                                        // console.log(data);
                                         if (typeof(data[12]) != 'undefined' && data[12] != null){
                                           if ( data[12] ) {
                                             $(row).addClass( 'accepted' );
@@ -603,7 +603,7 @@ server <- function(input, output, session) {
               column(width=3, paste0("Accepted by: ", input$review_user_submitting )),
               style="display: flex; align-items: center;"
             )
-          ), '\';console.log($("#shiny-modal")[0]); console.log($("#shiny-modal")[0].children[0].children[0].children[0].innerHTML)'
+          ), '\'; //console.log($("#shiny-modal")[0]); console.log($("#shiny-modal")[0].children[0].children[0].children[0].innerHTML)'
         )))
       } else {
         shinyjs::runjs(gsub("[\r\n]", "", paste0('$("#shiny-modal")[0].children[0].children[0].children[0].innerHTML = \'',
@@ -614,7 +614,7 @@ server <- function(input, output, session) {
               column(width=3, paste0("Rejected by: ", input$review_user_submitting )),
               style="display: flex; align-items: center;"
             ),
-          ), '\';console.log($("#shiny-modal")[0]); console.log($("#shiny-modal")[0].children[0].children[0].children[0].innerHTML)'
+          ), '\'; //console.log($("#shiny-modal")[0]); console.log($("#shiny-modal")[0].children[0].children[0].children[0].innerHTML)'
         )))
       }
 
@@ -691,6 +691,8 @@ server <- function(input, output, session) {
       fig <- fig %>% layout(title = "No. of Trials by Months until Completion",
                            xaxis = list(title = "Months"),
                            yaxis = list(title = "No. of Trials"))
+      
+      return(fig)
     })
 
 
@@ -698,5 +700,104 @@ server <- function(input, output, session) {
       paste("Number of Completed Trials: ", completed_trials)
     }
     )
+    
+    ## PLOTLY CLICK TO FILTER ##
+    ## Have to run intervals in javascript until the plotly plot has been rendered
+    ## otherwise there is no data. Once plot has been rendered attaches an event
+    ## that returns the closest data when clicked as a shiny input
+    shinyjs::runjs(HTML(
+      "var intv = setInterval(function(){
+        var $el = $('#noOfMonths');
+        if ( $el.length > 0 ) {
+          if (typeof $el[0].on !== 'undefined') {
+            clearInterval(intv);
+            $el[0].on('plotly_click', function(data){
+                Shiny.setInputValue('noOfMonths_click', data.points[0].x);
+                //console.log(data.points[0].x);
+             });
+          }
+        }
+      }, 500);"
+    ))
+    
+    observeEvent(input$noOfMonths_click, {
+      updateCheckboxGroupInput(session, "flagged_trails", selected = c(TRUE, FALSE, "NA"))
+      updateSliderInput(session,"expected_enrollment", value=80)
+      updateCheckboxInput(session,"enrollment_na_show", value = FALSE)
+      updateSelectInput(session,"study_design", selected = "All")
+      updateSelectInput(session,"trial_phase", selected = character(0))
+      updateDateRangeInput(session,"completion_date", start = Sys.Date() %m+% months(as.numeric(input$noOfMonths_click)-1), end = Sys.Date() %m+% months(as.numeric(input$noOfMonths_click)))
+      updateCheckboxInput(session,"completion_date_toggle", value = TRUE)
+      updateSelectInput(session,"treatment", selected = character(0))
+      # updateRadioButtons(session,"treatment_andor", selected = "AND")
+      updateSelectInput(session, "outcome", selected = character(0))
+      # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
+      
+      updateNavbarPage(session, "navbar", "Trial Selection")
+    })
+    
+    Sys.Date() %m+% months(1)
+    
+    shinyjs::runjs(HTML(
+      "var intv = setInterval(function(){
+        var $el = $('#noOfTreatments');
+        if ( $el.length > 0 ) {
+          if (typeof $el[0].on !== 'undefined') {
+            clearInterval(intv);
+            $el[0].on('plotly_click', function(data){
+                Shiny.setInputValue('noOfTreatments_click', data.points[0].y);
+                // console.log(data.points[0].y);
+             });
+          }
+        }
+      }, 500);"
+    ))
+    
+    observeEvent(input$noOfTreatments_click, {
+      updateCheckboxGroupInput(session, "flagged_trails", selected = c(TRUE, FALSE, "NA"))
+      updateSliderInput(session,"expected_enrollment", value=80)
+      updateCheckboxInput(session,"enrollment_na_show", value = FALSE)
+      updateSelectInput(session,"study_design", selected = "All")
+      updateSelectInput(session,"trial_phase", selected = character(0))
+      # updateDateRangeInput(session,"completion_date", start = today, end = today_plus_one_month, min = completion_date_min, max = completion_date_max)
+      updateCheckboxInput(session,"completion_date_toggle", value = FALSE)
+      updateSelectInput(session,"treatment", selected = input$noOfTreatments_click)
+      # updateRadioButtons(session,"treatment_andor", selected = "AND")
+      updateSelectInput(session, "outcome", selected = character(0))
+      # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
+      
+      updateNavbarPage(session, "navbar", "Trial Selection")
+    })
+    
+    shinyjs::runjs(HTML(
+      "var intv = setInterval(function(){
+        var $el = $('#noOfOutcomes');
+        if ( $el.length > 0 ) {
+          if (typeof $el[0].on !== 'undefined') {
+            clearInterval(intv);
+            $el[0].on('plotly_click', function(data){
+                Shiny.setInputValue('noOfOutcomes_click', data.points[0].y);
+                //console.log(data.points[0].y);
+             });
+          }
+        }
+      }, 500);"
+    ))
+    
+    observeEvent(input$noOfOutcomes_click, {
+      updateCheckboxGroupInput(session, "flagged_trails", selected = c(TRUE, FALSE, "NA"))
+      updateSliderInput(session,"expected_enrollment", value=80)
+      updateCheckboxInput(session,"enrollment_na_show", value = FALSE)
+      updateSelectInput(session,"study_design", selected = "All")
+      updateSelectInput(session,"trial_phase", selected = character(0))
+      # updateDateRangeInput(session,"completion_date", start = today, end = today_plus_one_month, min = completion_date_min, max = completion_date_max)
+      updateCheckboxInput(session,"completion_date_toggle", value = FALSE)
+      updateSelectInput(session,"treatment", selected = character(0))
+      # updateRadioButtons(session,"treatment_andor", selected = "AND")
+      updateSelectInput(session, "outcome", selected = input$noOfOutcomes_click)
+      # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
+      
+      updateNavbarPage(session, "navbar", "Trial Selection")
+    })
 
 }
