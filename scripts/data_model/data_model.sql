@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS trk_reviews (
 ); 
 
 CREATE VIEW trials_view AS 
-SELECT trk_trials.* FROM trk_trials
+SELECT DISTINCT ON (trial_id) trk_trials.* FROM trk_trials
 INNER JOIN (SELECT trial_id, max(created_at) max_date              
    FROM trk_trials GROUP BY trial_id) t2
 ON trk_trials.trial_id = t2.trial_id AND trk_trials.created_at = t2.max_date;
@@ -110,7 +110,6 @@ from trk_reviews
 inner join
     (select trial_id, max(created_at) max_date FROM trk_reviews GROUP BY trial_id) t2
 ON trk_reviews.trial_id = t2.trial_id AND trk_reviews.created_at = t2.max_date;
-
 
 CREATE VIEW combined_view AS 
 SELECT t.*, r.flag, r.rating, r.user_submitted, r.note, r.created_at AS review_date_created FROM trials_view t
