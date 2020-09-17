@@ -176,7 +176,8 @@ server <- function(input, output, session) {
       radioButtons("treatment_andor", label = "Treatment Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE),
       hr(),
       selectInput("outcome", "Outcome:", choices = outcomes, multiple = TRUE, selected = NULL),
-      radioButtons("outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
+      radioButtons("outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE),
+      shinySaveButton("generate_report", "Generate Report", 'Select download location...', filetype = ("csv"))
     )
   })
 
@@ -212,6 +213,55 @@ server <- function(input, output, session) {
                                as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, input$treatment_andor)),
                                as.logical(lapply(flag, review_filter_function, input$flagged_trails))
       )
+    }
+  })
+
+  ###########################################
+  ######## Generate Report
+  ###########################################
+
+  getCurrentFilters <- function() {
+    print(input$flagged_trails)
+    print(input$expected_enrollment)
+    print(input$enrollment_na_show)
+    print(input$study_design)
+    print(input$trial_phase)
+    print(input$completion_date)
+    print(input$completion_date_toggle)
+    print(input$treatment)
+    print(input$treatment_andor)
+    print(input$outcome)
+    print(input$outcome_andor)
+  }
+  roots <- c(files = "./..")
+  defaultRoot = "files"
+  shinyFileSave(input, "generate_report", roots=roots, defaultPath="",
+                defaultRoot=defaultRoot, session=session)
+
+  observeEvent(input$generate_report, {
+    if (!is.integer(input$generate_report)) { # shinyFiles check if file has been selected
+      roots <- c(files = "./..")
+      savepath <- parseSavePath(roots, input$generate_report)
+      savepath <- savepath$datapath
+
+      getCurrentFilters()
+      report_csv <- trials_subset_filtered()
+      write(paste("Date Generated: ",Sys.Date()), file = savepath)
+      write("Filter:",file = savepath, append = TRUE)
+      write(paste("Expected No. of Patients Between: ",input$expected_enrollment, " & ", "4000"),file = savepath, append = TRUE)
+      write(paste("Display Trials without Expected No of Patients Button Selected: ", input$enrollment_na_show),file = savepath, append = TRUE)
+      write(paste("Study Design: ", input$study_design),file = savepath, append = TRUE)
+      write(paste("Trial Phase: ", paste(input$trial_phase, collapse = "; ")) ,file = savepath, append = TRUE)
+      if(input$completion_date_toggle == TRUE){
+        write(paste("Trials Completed between: ", input$completion_date[1], " & ", input$completion_date[2]) ,file = savepath, append = TRUE)
+      }
+      write(paste("Treatments Selected: ", paste(input$treatment, collapse = "; ")) ,file = savepath, append = TRUE)
+      write(paste("Outcomes Selected: ", paste(input$outcome, collapse = "; ")) ,file = savepath, append = TRUE)
+      write("" ,file = savepath, append = TRUE)
+      write.table(trials_subset_filtered(), file = savepath, append = TRUE, sep =",", row.names=FALSE)
+
+
+
     }
   })
 

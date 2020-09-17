@@ -8,8 +8,8 @@ ui <- fluidPage(
 		    .modal-header.rejected{background-color: #f58484;}
 		    .modal-footer.accepted{background-color: #7bd881;}
 		    .modal-footer.rejected{background-color: #f58484;}
-		    
-		    
+
+
 		    .svg-container {
 		    margin-top:40px !important;
 		    }
@@ -47,12 +47,11 @@ ui <- fluidPage(
       sidebarPanel(
         useShinyjs(),
         width=3,
-        uiOutput("input_selection_sidepanel"),
-        
+        uiOutput("input_selection_sidepanel")
       ),
-      
+
       mainPanel(
-        
+
         div(id="loading_screen", style="display: inline-block",
               h4(style="text-align: center; position: relative; top: 235px; font-size: 200%", "Loading trial data..."),
               img(src='loading_gif.gif')
