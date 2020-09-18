@@ -756,7 +756,8 @@ server <- function(input, output, session) {
 
     output$noOfMonths <- renderPlotly({
       trials$no_of_months_until_readout <- (interval((Sys.Date()), (trials$date_primary_completion)) %/% months(1))
-      no_of_months <- trials %>% filter(no_of_months_until_readout <= 12 & no_of_months_until_readout >= 1)
+      trials_date <- trials%>% filter(date_primary_completion >= Sys.Date())
+      no_of_months <- trials_date %>% filter(no_of_months_until_readout <= 11 & no_of_months_until_readout > -1)
       no_of_months$no_of_months_until_readout <- no_of_months$no_of_months_until_readout + 1
       counts <- table(readout_months = no_of_months$no_of_months_until_readout)
       counts_dataframe <- as.data.frame(counts)
