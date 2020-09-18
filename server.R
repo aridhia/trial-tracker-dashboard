@@ -219,19 +219,6 @@ server <- function(input, output, session) {
   ######## Generate Report
   ###########################################
 
-  getCurrentFilters <- function() {
-    print(input$flagged_trials)
-    print(input$expected_enrollment)
-    print(input$enrollment_na_show)
-    print(input$study_design)
-    print(input$trial_phase)
-    print(input$completion_date)
-    print(input$completion_date_toggle)
-    print(input$treatment)
-    print(input$treatment_andor)
-    print(input$outcome)
-    print(input$outcome_andor)
-  }
   roots <- c(files = "./..")
   defaultRoot = "files"
   shinyFileSave(input, "generate_report", roots=roots, defaultPath="",
@@ -248,6 +235,9 @@ server <- function(input, output, session) {
       unreviewed_flag <- ''
       trials_without_expected_enrol <- ''
       completion_date_toggle_flag <- ''
+      treatments_report <- ''
+      outcomes_report <- ''
+      trial_phase_report <- ''
 
       if("TRUE" %in% input$flagged_trials){
         accepted_flag <- 'Selected'
@@ -279,7 +269,24 @@ server <- function(input, output, session) {
         completion_date_toggle_flag <- 'Not Selected'
       }
 
-      getCurrentFilters()
+      if(is.null(input$trial_phase)){
+        trial_phase_report <- 'All'
+      } else {
+        trial_phase_report <- paste(input$trial_phase, collapse = "; ")
+      }
+
+      if(is.null(input$treatment)){
+        treatments_report <- 'All'
+      } else {
+        treatments_report <- paste(input$treatment, collapse = "; ")
+      }
+
+      if(is.null(input$outcome)){
+        outcomes_report <- 'All'
+      } else {
+        outcomes_report <- paste(input$outcome, collapse = "; ")
+      }
+
       report_csv <- trials_subset_filtered()
       write(paste("Date Generated: ",Sys.Date()), file = savepath)
       write("Filter:",file = savepath, append = TRUE)
@@ -289,13 +296,13 @@ server <- function(input, output, session) {
       write(paste("Expected No. of Patients Greater than: ",input$expected_enrollment),file = savepath, append = TRUE)
       write(paste("Display Trials without Expected No of Patients Button Selected: ", trials_without_expected_enrol),file = savepath, append = TRUE)
       write(paste("Study Design: ", input$study_design),file = savepath, append = TRUE)
-      write(paste("Trial Phase: ", paste(input$trial_phase, collapse = "; ")) ,file = savepath, append = TRUE)
+      write(paste("Trial Phase: ", trial_phase_report) ,file = savepath, append = TRUE)
       if(input$completion_date_toggle == TRUE){
         write(paste("Filter by Completion Dates Selected: ", completion_date_toggle_flag), file = savepath, append = TRUE)
         write(paste("Trials Completed between: ", input$completion_date[1], " & ", input$completion_date[2]) ,file = savepath, append = TRUE)
       }
-      write(paste0("Treatments Selected(",input$treatment_andor,"): ", paste(input$treatment, collapse = "; ")) ,file = savepath, append = TRUE)
-      write(paste0("Outcomes Selected(",input$outcome_andor,"): ", paste(input$outcome, collapse = "; ")) ,file = savepath, append = TRUE)
+      write(paste0("Treatments Selected (",input$treatment_andor,"): ", treatments_report) ,file = savepath, append = TRUE)
+      write(paste0("Outcomes Selected (",input$outcome_andor,"): ", outcomes_report) ,file = savepath, append = TRUE)
       write("" ,file = savepath, append = TRUE)
       write.table(trials_subset_filtered(), file = savepath, append = TRUE, sep =",", row.names=FALSE)
 
