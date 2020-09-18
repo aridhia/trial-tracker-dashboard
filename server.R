@@ -17,11 +17,7 @@ server <- function(input, output, session) {
   con                <- ''
 
   # Set Variables for Enviorment
-  if(exists("xap.conn")){
-    con <- xap.conn
-  } else {
-    con <- dbConnect(RPostgres::Postgres(), dbname=Sys.getenv("PGDATABASE"), host=Sys.getenv("PGHOST"), user=Sys.getenv("PGUSER"), password=Sys.getenv("PGPASSWORD"))
-  }
+  con <- dbConnect(RPostgres::Postgres(), dbname=Sys.getenv("PGDATABASE"), host=Sys.getenv("PGHOST"), user=Sys.getenv("PGUSER"), password=Sys.getenv("PGPASSWORD"))
 
   trials_original = RPostgres::dbGetQuery(con, "SELECT * FROM combined_view;")
 
