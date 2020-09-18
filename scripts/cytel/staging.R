@@ -19,7 +19,7 @@ library(DBI)
 # This is important as we rely on loading an RData file,
 # and expecting new variables in memory
 # rm(list = ls(all.names = TRUE))
-# gc() 
+# gc()
 
 # Configuration
 latest_rdata_file   <- '../COVID-19-Clinical-trial-tracker/dat_processed_and_network.RData'
@@ -28,7 +28,7 @@ log_file            <- paste0('./archive/cytel-log-', format(Sys.time(), '%Y%m%d
 tracker_db_tbl      <- 'trk_staging_trials'
 con                 <- ''
 
-# Set Variables for Enviorment
+# Set Variables for Environment
 if(exists("xap.conn")){
     con <- xap.conn
 } else {
@@ -67,7 +67,7 @@ if (!file.exists(latest_rdata_file)) {
 
         # OK, now we can load the archive file, validate and parse the data
         load(archive_file)
-        
+
         # Validation
         # 'dat' and 'dat_network_pairs' data frames are present
         df_dat_name <- 'dat'
@@ -79,7 +79,7 @@ if (!file.exists(latest_rdata_file)) {
 
             # Read in the expected metadata
             expected_dictionary <- fromJSON('./scripts/cytel/dat.json')
-            # TODO - dat.json should have `type` in generic/FAIR controlled vocabulary 
+            # TODO - dat.json should have `type` in generic/FAIR controlled vocabulary
             #        and then convert to R type names
             expected_fields = expected_dictionary$fields
 
@@ -98,7 +98,7 @@ if (!file.exists(latest_rdata_file)) {
             } else {
                 # Check database connection and table exist
                 message('Testing database connection')
- 
+
                 if (!is.element(tracker_db_tbl, dbListTables(con))) {
                     message(paste('Missing table:', tracker_db_tbl), echo=FALSE)
                 } else {
