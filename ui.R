@@ -37,6 +37,10 @@ ui <- fluidPage(
 		    table.dataTable {
 		      margin: 10px auto !important
 		    }
+		    #shiny-notification-panel {
+		    top: 0px;
+		    right: 0px;
+		    }
       ")
     )
   ),
