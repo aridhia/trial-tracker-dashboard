@@ -1,5 +1,6 @@
 # applications specific
 archive
+output
 *.log
 
 # History files
