@@ -1,0 +1,78 @@
+---
+title: "Trial Tracker Report"
+output:
+  pdf_document:
+    toc: false
+    number_sections: false
+    df_print: kable
+    highlight: tango
+    includes:
+        in_header: "preamble.tex"
+classoption: landscape,a4paper
+geometry: rmargin=1cm,lmargin=1cm,tmargin=2cm,bmargin=2cm
+---
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+library(kableExtra)
+library(readr)
+
+# Read in the data
+df <- read_csv('example.csv')
+filter <- read_csv('example.filter.csv')
+# Add a row with the number of records
+filter <- rbind(filter, c('No. of records', nrow(df)))
+
+```
+# Filters Applied
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+kable(filter) %>%
+    kable_styling(latex_options=c("striped", "repeat_header"), font_size=9)
+
+```
+
+# Provenance
+
+- File: \currfilebase.pdf
+- Report produced: `r format(Sys.time(), "%Y-%m-%d %H:%M:%S")`
+- Source: <https://driver1.westeurope.covid-19.aridhia.io/#/workspaces/4/mini_app/46>
+
+
+\newpage
+
+# Selected Trials
+
+Filters returned `r nrow(df)` records.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+names(df) <- c( "Trial ID",             # 1
+                "Title",                # 2
+                "Institution",          # 3
+                "Primary completion",   # 4
+                "Expected Enrollment",  # 5
+                "Patient Setting",      # 6
+                "Final Design",         # 7
+                "# of Arms",            # 8 
+                "Treatment Name",       # 9
+                "Outcome",              # 10    
+                "Phase",                # 11
+                "Flag")              # 12
+
+kable(df, longtable=TRUE) %>%
+    column_spec(1,  width="10em")    %>%
+    column_spec(2,  width="10em")   %>%
+    column_spec(3,  width="5em")    %>%
+    column_spec(4,  width="5em")    %>%
+    column_spec(5,  width="5em")    %>%
+    column_spec(6,  width="5em")    %>%
+    column_spec(7,  width="7em")    %>%
+    column_spec(8,  width="2em")    %>%
+    column_spec(9,  width="7em")    %>%
+    column_spec(10, width="10em")   %>%
+    column_spec(11, width="2em")    %>%
+    column_spec(12, width="2em")    %>%
+    kable_styling(latex_options=c("striped", "repeat_header"), font_size=9)
+```
+
