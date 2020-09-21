@@ -19,15 +19,19 @@ library(readr)
 # Read in the data
 df <- read_csv('example.csv')
 filter <- read_csv('example.filter.csv')
+
 # Add a row with the number of records
 filter <- rbind(filter, c('No. of records', nrow(df)))
-
 ```
+\fontfamily{phv}
+\fontsize{12}{22}
+\selectfont
+
 # Filters Applied
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 
-kable(filter) %>%
+kable(filter, longtable=TRUE) %>%
     kable_styling(latex_options=c("striped", "repeat_header"), font_size=9)
 
 ```
