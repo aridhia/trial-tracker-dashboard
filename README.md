@@ -7,6 +7,17 @@ A triage tool for clinical trials of interest. Intermediary between feeds of cli
 
 This app was developed as part of the COVID-19 Workbench technology programme.
 
+## Pre-requisites
+
+In order to run this app and associated scripts, the following need to be installed:
+
+- PostgreSQL database
+- R 3.6.1 or greater
+- R package dependencies. From R:
+```R
+install.packages(c("dplyr", "DT", "shiny", "shinydashboard", "shinyjs", "shinythemes", "tidyr", "lubridate", "purrr", "stringr", "plotly", "DBI", "RPostgres"))
+```
+
 ## Database
 
 Clinical trial data is loaded into a PostgreSQL database. When running standalone, this should be called `tracker`. Assuming the database exists and the user can create tables etc:
@@ -76,7 +87,7 @@ The data model should now be populated with the Cytel data feed.
 
 1. Ensure the Database which contains the data model is running.  See the steps above for setting up and populating the data model.
 
-2. Open the project up in R studio.
+2. Open the project up in R studio. The app will also run in command line R.
 
 3. Set the following enviorment varibales in the R console.  This will allow the app to connect to the database.
 ```r
@@ -86,4 +97,8 @@ Sys.setenv(PGUSER = "")
 Sys.setenv(PGPASSWORD = "")
 ```
 
-4. Run the application.
+4. Run the application using RStudio's 'Run app' button. To run this from the command line:
+```sh
+R -e "shiny::runApp('.', launch.browser=FALSE, port=9090)"
+```
+Then open your browser at <http://localhost:9090>. You may need to change the port if you already have a service running on port 9090.
