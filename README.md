@@ -15,7 +15,20 @@ In order to run this app and associated scripts, the following need to be instal
 - R 3.6.1 or greater
 - R package dependencies. From R:
 ```R
-install.packages(c("dplyr", "DT", "shiny", "shinydashboard", "shinyjs", "shinythemes", "tidyr", "lubridate", "purrr", "stringr", "plotly", "DBI", "RPostgres"))
+install.packages(c("dplyr", 
+                    "DT", 
+                    "shiny", 
+                    "shinydashboard", 
+                    "shinyjs", 
+                    "shinythemes", 
+                    "shinyFiles",
+                    "tidyr", 
+                    "lubridate", 
+                    "purrr", 
+                    "stringr", 
+                    "plotly", 
+                    "DBI", 
+                    "RPostgres"))
 ```
 
 ## Database
