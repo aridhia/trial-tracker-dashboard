@@ -18,6 +18,7 @@ library(stringr)
 library(plotly)
 library(DBI)
 library(RPostgres)
+library(shinyFiles)
 
 library(knitr)
 library(kableExtra)

@@ -1,7 +1,5 @@
 options(connectionObserver = NULL)
 
-
-
 server <- function(input, output, session) {
 
   # fix for mini_app greying-out after 10 min of inactivity
@@ -15,16 +13,11 @@ server <- function(input, output, session) {
   ##################################    MOVED FROM GLOBAL.R    ##################################
   ###############################################################################################
 
-  date_data_transfer <- "2020-07-29"
+  date_data_transfer <- "2020-09-15"
   con                <- ''
 
   # Set Variables for Enviorment
-  if(exists("xap.conn")){
-    con <- xap.conn
-  } else {
-    # con <- dbConnect(RPostgres::Postgres(), dbname=Sys.getenv("PGDATABASE"), host=Sys.getenv("PGHOST"), user=Sys.getenv("PGUSER"), password=Sys.getenv("PGPASSWORD"))
-    con <- dbConnect(RPostgres::Postgres(), dbname="covid_trial_tracker", host=Sys.getenv("PGHOST"), user="postgres", password="postgres")
-  }
+  con <- dbConnect(RPostgres::Postgres(), dbname=Sys.getenv("PGDATABASE"), host=Sys.getenv("PGHOST"), user=Sys.getenv("PGUSER"), password=Sys.getenv("PGPASSWORD"))
 
   trials_original = RPostgres::dbGetQuery(con, "SELECT * FROM combined_view;")
 
@@ -161,11 +154,9 @@ server <- function(input, output, session) {
   ## Pulled from UI because these depend on data being loaded (which is now removed from Global.r)
   output$input_selection_sidepanel <- renderUI({
     tagList(
-      actionButton("generate_report", "Print PDF"),
-      hr(),
       paste("Data last updated: ", date_data_transfer, sep=""),
       hr(),
-      checkboxGroupInput("flagged_trails", label="Display trials with flag:", inline=TRUE, choices=list("Accepted"= TRUE, "Rejected"=FALSE, "Unreviewed"="NA"), selected = c(TRUE, FALSE, "NA")),
+      checkboxGroupInput("flagged_trials", label="Display trials with flag:", inline=TRUE, choices=list("Accepted"= TRUE, "Rejected"=FALSE, "Unreviewed"="NA"), selected = c(TRUE, FALSE, "NA")),
       hr(),
       sliderInput("expected_enrollment", "Expected No. of Patients Size at Least:", min = 0, max = 4000, step = 100, value=80),
       checkboxInput("enrollment_na_show", label="Display trials without Expected No. of Patients", value = FALSE),
@@ -180,7 +171,8 @@ server <- function(input, output, session) {
       radioButtons("treatment_andor", label = "Treatment Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE),
       hr(),
       selectInput("outcome", "Outcome:", choices = outcomes, multiple = TRUE, selected = NULL),
-      radioButtons("outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
+      radioButtons("outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE),
+      shinySaveButton("generate_report", "Generate Report", 'Select download location...', filetype = ("csv"))
     )
   })
 
@@ -199,7 +191,7 @@ server <- function(input, output, session) {
                                as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2] | !input$completion_date_toggle,
                                as.logical(lapply(outcome, outcome_filter_function, input$outcome, input$outcome_andor)),
                                as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, input$treatment_andor)),
-                               as.logical(lapply(flag, review_filter_function, input$flagged_trails))
+                               as.logical(lapply(flag, review_filter_function, input$flagged_trials))
       )
     }
   })
@@ -214,8 +206,104 @@ server <- function(input, output, session) {
                                as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2] | !input$completion_date_toggle,
                                as.logical(lapply(outcome, outcome_filter_function, input$outcome, input$outcome_andor)),
                                as.logical(lapply(corrected_treatment_name, treatment_filter_function, input$treatment, input$treatment_andor)),
-                               as.logical(lapply(flag, review_filter_function, input$flagged_trails))
+                               as.logical(lapply(flag, review_filter_function, input$flagged_trials))
       )
+    }
+  })
+
+  ###########################################
+  ######## Generate Report
+  ###########################################
+
+  roots <- c(files = "./..")
+  defaultRoot = "files"
+  shinyFileSave(input, "generate_report", roots=roots, defaultPath="",
+                defaultRoot=defaultRoot, session=session)
+
+  observeEvent(input$generate_report, {
+    if (!is.integer(input$generate_report)) { # shinyFiles check if file has been selected
+      roots <- c(files = "./..")
+      savepath <- parseSavePath(roots, input$generate_report)
+      savepath <- savepath$datapath
+
+      accepted_flag <- ''
+      rejected_flag <- ''
+      unreviewed_flag <- ''
+      trials_without_expected_enrol <- ''
+      completion_date_toggle_flag <- ''
+      treatments_report <- ''
+      outcomes_report <- ''
+      trial_phase_report <- ''
+
+      if("TRUE" %in% input$flagged_trials){
+        accepted_flag <- 'Selected'
+      }else {
+        accepted_flag <- 'Not Selected'
+      }
+
+      if("FALSE" %in% input$flagged_trials){
+        rejected_flag <- 'Selected'
+      }else {
+        rejected_flag <- 'Not Selected'
+      }
+
+      if("NA" %in% input$flagged_trials){
+        unreviewed_flag <- 'Selected'
+      }else {
+        unreviewed_flag <- 'Not Selected'
+      }
+
+      if(input$enrollment_na_show == TRUE){
+        trials_without_expected_enrol <- 'Selected'
+      } else {
+        trials_without_expected_enrol <- 'Not Selected'
+      }
+
+      if(input$completion_date_toggle == TRUE){
+        completion_date_toggle_flag <- 'Selected'
+      } else {
+        completion_date_toggle_flag <- 'Not Selected'
+      }
+
+      if(is.null(input$trial_phase)){
+        trial_phase_report <- 'All'
+      } else {
+        trial_phase_report <- paste(input$trial_phase, collapse = "; ")
+      }
+
+      if(is.null(input$treatment)){
+        treatments_report <- 'All'
+      } else {
+        treatments_report <- paste(input$treatment, collapse = "; ")
+      }
+
+      if(is.null(input$outcome)){
+        outcomes_report <- 'All'
+      } else {
+        outcomes_report <- paste(input$outcome, collapse = "; ")
+      }
+
+      report_csv <- trials_subset_filtered()
+      write(paste("Date Generated: ",Sys.Date()), file = savepath)
+      write("Filter:",file = savepath, append = TRUE)
+      write(paste("Trials with Accepted Flag: ",accepted_flag),file = savepath, append = TRUE)
+      write(paste("Trials with Rejected Flag: ",rejected_flag),file = savepath, append = TRUE)
+      write(paste("Trials with Unreviewed Flag: ",unreviewed_flag),file = savepath, append = TRUE)
+      write(paste("Expected No. of Patients Greater than: ",input$expected_enrollment),file = savepath, append = TRUE)
+      write(paste("Display Trials without Expected No of Patients Button Selected: ", trials_without_expected_enrol),file = savepath, append = TRUE)
+      write(paste("Study Design: ", input$study_design),file = savepath, append = TRUE)
+      write(paste("Trial Phase: ", trial_phase_report) ,file = savepath, append = TRUE)
+      if(input$completion_date_toggle == TRUE){
+        write(paste("Filter by Completion Dates Selected: ", completion_date_toggle_flag), file = savepath, append = TRUE)
+        write(paste("Trials Completed between: ", input$completion_date[1], " & ", input$completion_date[2]) ,file = savepath, append = TRUE)
+      }
+      write(paste0("Treatments Selected (",input$treatment_andor,"): ", treatments_report) ,file = savepath, append = TRUE)
+      write(paste0("Outcomes Selected (",input$outcome_andor,"): ", outcomes_report) ,file = savepath, append = TRUE)
+      write("" ,file = savepath, append = TRUE)
+      write.table(trials_subset_filtered(), file = savepath, append = TRUE, sep =",", row.names=FALSE)
+
+      showNotification("Report Complete", duration=5,  type="message")
+
     }
   })
 
@@ -469,7 +557,7 @@ server <- function(input, output, session) {
 
             column(6,
                    div(tags$b("Outcomes")),
-                   div(trial$H)
+                   div(trial$outcome)
             )
           ),
           tags$br(),
@@ -570,7 +658,7 @@ server <- function(input, output, session) {
       print(res)
 
       # edge case where newly create review should is not included in filter. upsets all of the row counting.
-      if (!(input$review_selection %in% input$flagged_trails)) {review_display_edge_case(TRUE)}
+      if (!(input$review_selection %in% input$flagged_trials)) {review_display_edge_case(TRUE)}
 
       trials_new <- trials_reactive()
       trials_subset_new <- trials_subset_reactive()
@@ -668,7 +756,8 @@ server <- function(input, output, session) {
 
     output$noOfMonths <- renderPlotly({
       trials$no_of_months_until_readout <- (interval((Sys.Date()), (trials$date_primary_completion)) %/% months(1))
-      no_of_months <- trials %>% filter(no_of_months_until_readout <= 12 & no_of_months_until_readout >= 1)
+      trials_date <- trials%>% filter(date_primary_completion >= Sys.Date())
+      no_of_months <- trials_date %>% filter(no_of_months_until_readout <= 11 & no_of_months_until_readout > -1)
       no_of_months$no_of_months_until_readout <- no_of_months$no_of_months_until_readout + 1
       counts <- table(readout_months = no_of_months$no_of_months_until_readout)
       counts_dataframe <- as.data.frame(counts)
@@ -715,7 +804,7 @@ server <- function(input, output, session) {
     ))
 
     observeEvent(input$noOfMonths_click, {
-      updateCheckboxGroupInput(session, "flagged_trails", selected = c(TRUE, FALSE, "NA"))
+      updateCheckboxGroupInput(session, "flagged_trials", selected = c(TRUE, FALSE, "NA"))
       updateSliderInput(session,"expected_enrollment", value=80)
       updateCheckboxInput(session,"enrollment_na_show", value = FALSE)
       updateSelectInput(session,"study_design", selected = "All")
@@ -748,7 +837,7 @@ server <- function(input, output, session) {
     ))
 
     observeEvent(input$noOfTreatments_click, {
-      updateCheckboxGroupInput(session, "flagged_trails", selected = c(TRUE, FALSE, "NA"))
+      updateCheckboxGroupInput(session, "flagged_trials", selected = c(TRUE, FALSE, "NA"))
       updateSliderInput(session,"expected_enrollment", value=80)
       updateCheckboxInput(session,"enrollment_na_show", value = FALSE)
       updateSelectInput(session,"study_design", selected = "All")
@@ -779,7 +868,7 @@ server <- function(input, output, session) {
     ))
 
     observeEvent(input$noOfOutcomes_click, {
-      updateCheckboxGroupInput(session, "flagged_trails", selected = c(TRUE, FALSE, "NA"))
+      updateCheckboxGroupInput(session, "flagged_trials", selected = c(TRUE, FALSE, "NA"))
       updateSliderInput(session,"expected_enrollment", value=80)
       updateCheckboxInput(session,"enrollment_na_show", value = FALSE)
       updateSelectInput(session,"study_design", selected = "All")
@@ -792,11 +881,6 @@ server <- function(input, output, session) {
       # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
 
       updateNavbarPage(session, "navbar", "Trial Selection")
-    })
-    
-    observeEvent(input$generate_report, {
-      print(nrow(trials_filtered()))
-      gen_report(input, trials_filtered())
     })
 
 }
