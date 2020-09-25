@@ -17,7 +17,9 @@ server <- function(input, output, session) {
   con                <- ''
 
   # Set Variables for Enviorment
+  Sys.setenv(PGHOST = "10.0.0.4")
   con <- dbConnect(RPostgres::Postgres(), dbname=Sys.getenv("PGDATABASE"), host=Sys.getenv("PGHOST"), user=Sys.getenv("PGUSER"), password=Sys.getenv("PGPASSWORD"))
+  # con <- dbConnect(RPostgres::Postgres(), dbname="covid_trial_tracker", host="", user="postgres", password="postgres")
 
   trials_original = RPostgres::dbGetQuery(con, "SELECT * FROM combined_view;")
 
@@ -25,7 +27,7 @@ server <- function(input, output, session) {
     select(-c(state_name, state_lon, state_lat, country_name, iso3_code))
   # %>% unique() # unique not working anymore with new columns (?)
   trials <- trials[!duplicated(trials$trial_id), ]
-
+  
   trials_subset <- trials %>%
     select(trial_id,
            scientific_title,
@@ -154,6 +156,10 @@ server <- function(input, output, session) {
   ## Pulled from UI because these depend on data being loaded (which is now removed from Global.r)
   output$input_selection_sidepanel <- renderUI({
     tagList(
+      shinySaveButton("generate_report", "Generate CSV Report", 'Select download location...', filetype = ("csv")),
+      shinySaveButton("generate_pdf_report", "Generate PDF Report", 'Select download location...', filetype = ("pdf")),
+      img(id="pdf_loading_gif", src='pdf_loading_gif.gif', style = "width: 20px", class="hidden"),
+      hr(),
       paste("Data last updated: ", date_data_transfer, sep=""),
       hr(),
       checkboxGroupInput("flagged_trials", label="Display trials with flag:", inline=TRUE, choices=list("Accepted"= TRUE, "Rejected"=FALSE, "Unreviewed"="NA"), selected = c(TRUE, FALSE, "NA")),
@@ -172,9 +178,7 @@ server <- function(input, output, session) {
       hr(),
       selectInput("outcome", "Outcome:", choices = outcomes, multiple = TRUE, selected = NULL),
       radioButtons("outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE),
-      hr(),
-      shinySaveButton("generate_report", "Generate Report", 'Select download location...', filetype = ("csv")),
-      actionButton("generate_pdf_report", "Print PDF")
+      hr()
     )
   })
 
@@ -220,6 +224,9 @@ server <- function(input, output, session) {
   roots <- c(files = "./..")
   defaultRoot = "files"
   shinyFileSave(input, "generate_report", roots=roots, defaultPath="",
+                defaultRoot=defaultRoot, session=session)
+  
+  shinyFileSave(input, "generate_pdf_report", roots=roots, defaultPath="",
                 defaultRoot=defaultRoot, session=session)
 
   observeEvent(input$generate_report, {
@@ -308,6 +315,45 @@ server <- function(input, output, session) {
 
     }
   })
+  
+  observeEvent(input$generate_pdf_report, {
+    if (!is.integer(input$generate_pdf_report)) { # shinyFiles check if file has been selected
+      roots <- c(files = "./..")
+      savepath <- parseSavePath(roots, input$generate_pdf_report)
+      savepath <- savepath$datapath
+      
+      print("GENERATING REPORT...")
+      shinyjs::removeClass(id="pdf_loading_gif", class="hidden")
+      shinyjs::addClass(id="generate_pdf_report", class="disabled")
+      
+      input_brew ="./reporting/report_template.brew"
+      gen_report(input, trials_filtered())
+      
+      # cleanup
+      # move file to correct location and name
+      default_brew_gen_norm <- normalizePath(input_brew)
+      
+      default_pdf_gen_norm <- sub(".brew$", ".pdf", default_brew_gen_norm)
+      if (file.exists(default_pdf_gen_norm)) {
+        # savefile <- normalizePath(savefile)
+        
+        file.rename(default_pdf_gen_norm, savepath)
+      }
+      # if (file.exists(sub(".brew$", ".tex", default_brew_gen_norm))) {file.remove(sub(".brew$", ".tex", default_brew_gen_norm))}
+      if (file.exists(sub(".brew$", ".Rnw", default_brew_gen_norm))) {file.remove(sub(".brew$", ".Rnw", default_brew_gen_norm))}
+      if (dir.exists("./app_functions/report_module/figure")) {unlink("./app_functions/report_module/figure", recursive=TRUE)}
+      print("COMPLETED REPORT CLEANUP")
+      print(paste0("FILE SAVED AT: ", savepath))
+      
+      shinyjs::addClass(id="pdf_loading_gif", class="hidden")
+      shinyjs::removeClass(id="generate_pdf_report", class="disabled")
+      
+      # display notification
+      notification_savefile_path <- paste0("files", str_remove(savepath, "./.."))
+      showNotification(paste0("Report created: ", notification_savefile_path), duration = 5, type="message")
+    }
+  })
+  
 
   output$trials <- renderDataTable(
     isolate(trials_subset_filtered()), # Isolated this so that data table is updated via 'proxy' instead
@@ -885,9 +931,5 @@ server <- function(input, output, session) {
       updateNavbarPage(session, "navbar", "Trial Selection")
     })
     
-    observeEvent(input$generate_pdf_report, {
-      print(nrow(trials_filtered()))
-      gen_report(input, trials_filtered())
-    })
-
+    
 }
