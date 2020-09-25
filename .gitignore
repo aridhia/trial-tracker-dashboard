@@ -41,3 +41,10 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+# reporting extra files 
+reporting/*.pdf
+reporting/*.aux
+reporting/*.out
+reporting/*.Rnw
+reporting/*.tex

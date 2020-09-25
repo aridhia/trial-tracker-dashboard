@@ -24,6 +24,7 @@ brew2pdf <- function(input, output_dir, envir = parent.frame(), ...) {
   # return to the original working directory on function exit (including exit via error)
   on.exit(setwd(orig_wd))
   # knit2pdf(rnw_file_name, output = tex_file_name, envir = envir)
+  
   tinytex::latexmk(tex_file_name, engine = "pdflatex")
 }
 

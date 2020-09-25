@@ -24,10 +24,13 @@
 
 <% custom_sanitize <- function(x) {
 
+	x <- gsub("\u26", "&", x)
+	x <- gsub("\uff06", "&", x)
+	x <- gsub("\ufe60", "&", x)
+
 	x <- Hmisc::latexTranslate(enc2utf8(shiny::HTML(toString(x))))
 	return(x)
 
-	
 } %>
 
 \begin{document}
