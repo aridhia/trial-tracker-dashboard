@@ -23,6 +23,7 @@ library(shinyFiles)
 library(knitr)
 library(kableExtra)
 library(brew)
+library(dplR)
 
 source("./reporting/reporting_utils.r")
 

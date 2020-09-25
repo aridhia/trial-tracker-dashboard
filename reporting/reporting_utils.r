@@ -28,15 +28,6 @@ brew2pdf <- function(input, output_dir, envir = parent.frame(), ...) {
   tinytex::latexmk(tex_file_name, engine = "pdflatex")
 }
 
-
-gen_report_old <- function(titles, outputs, types = NULL, input = "./reporting/report_template.brew",
-                       output_dir = "./reporting", ...) {
-  if (is.null(types)) {types <- rep("raw", length(titles))}
-  eval_envir <- list2env(list(titles = titles, outputs = outputs, types = types))
-  brew2pdf(input, output_dir, envir = eval_envir, ...)
-}
-
-
 gen_report <- function(input, trials, input_brew = "./reporting/report_template.brew",
                        output_dir = "./reporting", ...) {
   # pack up input into list

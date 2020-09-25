@@ -206,7 +206,7 @@ server <- function(input, output, session) {
     if (is.null(input$expected_enrollment)) {
       trials_reactive() # prevents filter error on first render but allows initial generation of datatable (which is isolated)
     } else {
-      trials_reactive() %>% filter(expected_enrollment >= input$expected_enrollment,
+      trials_reactive() %>% filter((expected_enrollment >= input$expected_enrollment) | (input$enrollment_na_show & is.na(expected_enrollment)),
                                study_design_final %in% input$study_design | input$study_design == "All",
                                as.logical(lapply(phase, phase_filter_function, input$trial_phase)),
                                as.Date(date_primary_completion) >= input$completion_date[1] & as.Date(date_primary_completion) <= input$completion_date[2] | !input$completion_date_toggle,
@@ -325,6 +325,9 @@ server <- function(input, output, session) {
       print("GENERATING REPORT...")
       shinyjs::removeClass(id="pdf_loading_gif", class="hidden")
       shinyjs::addClass(id="generate_pdf_report", class="disabled")
+      
+      
+      print(paste0(nrow(trials_filtered()), " vs. ", nrow(trials_subset_reactive())))
       
       input_brew ="./reporting/report_template.brew"
       gen_report(input, trials_filtered())

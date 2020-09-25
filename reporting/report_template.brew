@@ -33,11 +33,58 @@
 	
 	# can't remember what shiny::HTML was for. ignoring for now
 	# x <- Hmisc::latexTranslate(enc2utf8(shiny::HTML(toString(x))))
-	x <- Hmisc::latexTranslate(enc2utf8(toString(x)))
+	# x <- Hmisc::latexTranslate(enc2utf8(toString(x)))
+	
+	# latexify seems to be a more robust function for doing this
+	# but requires a couple of fixes
+	x <- dplR::latexify(enc2utf8(toString(x)), doublebackslash = FALSE)
+	
+	# fix latexify quote changes
+	x <- gsub("\\\\textquotesingle", "'", x)
+	x <- gsub("\\\\textquotedbl", '"', x)
+	
+	# fix guillemet changes
+	x <- gsub("\\\\guillemotleft", "$\\\\ll$", x)
+	x <- gsub("\\\\guillemotright", "$\\\\gg$", x)
+	
+	# normal less/greater and equal sign
+	x <- gsub("\u2264", "$\\\\leq$", x)
+	x <- gsub("\u2265", "$\\\\geq$", x)
 	
 	# slanted less/greater than and equal sign
-	x <- gsub("\u2a7e", "$\\\\geqslant$", x)
 	x <- gsub("\u2a7d", "$\\\\leqslant$", x)
+	x <- gsub("\u2a7e", "$\\\\geqslant$", x)
+	
+	
+	# greek letters
+	x <- gsub("\u03b1", "$\\\\alpha$", x)
+	x <- gsub("\u03b2", "$\\\\beta$", x)
+	x <- gsub("\u03b3", "$\\\\gamma$", x)
+	x <- gsub("\u03b4", "$\\\\delta$", x)
+	x <- gsub("\u03b5", "$\\\\epsilon$", x)
+	x <- gsub("\u03b6", "$\\\\zeta$", x)
+	x <- gsub("\u03b7", "$\\\\eta$", x)
+	x <- gsub("\u03b8", "$\\\\theta$", x)
+	x <- gsub("\u03b9", "$\\\\iota$", x)
+	x <- gsub("\u03ba", "$\\\\kappa$", x)
+	x <- gsub("\u03bb", "$\\\\lambda$", x)
+	x <- gsub("\u03bc", "$\\\\mu$", x)
+	x <- gsub("\u03bd", "$\\\\nu$", x)
+	x <- gsub("\u03be", "$\\\\xi$", x)
+	x <- gsub("\u03bf", "$\\\\omicron$", x)
+	x <- gsub("\u03c0", "$\\\\pi$", x)
+	x <- gsub("\u03c1", "$\\\\rho$", x)
+	x <- gsub("\u03c2", "$\\\\varsigma$", x)
+	x <- gsub("\u03c3", "$\\\\sigma$", x)
+	x <- gsub("\u03c4", "$\\\\tau$", x)
+	x <- gsub("\u03c5", "$\\\\upsilon$", x)
+	x <- gsub("\u03c6", "$\\\\phi$", x)
+	x <- gsub("\u03c7", "$\\\\chi$", x)
+	x <- gsub("\u03c8", "$\\\\psi$", x)
+	x <- gsub("\u03c9", "$\\\\omega$", x)
+	
+	# remove any other unicode character 
+	x <- gsub("[^\x20-\x7E]", "", x)
 	
 	return(x)
 
