@@ -1,6 +1,7 @@
 options(connectionObserver = NULL)
 
 
+
 server <- function(input, output, session) {
 
   # fix for mini_app greying-out after 10 min of inactivity
@@ -21,7 +22,8 @@ server <- function(input, output, session) {
   if(exists("xap.conn")){
     con <- xap.conn
   } else {
-    con <- dbConnect(RPostgres::Postgres(), dbname=Sys.getenv("PGDATABASE"), host=Sys.getenv("PGHOST"), user=Sys.getenv("PGUSER"), password=Sys.getenv("PGPASSWORD"))
+    # con <- dbConnect(RPostgres::Postgres(), dbname=Sys.getenv("PGDATABASE"), host=Sys.getenv("PGHOST"), user=Sys.getenv("PGUSER"), password=Sys.getenv("PGPASSWORD"))
+    con <- dbConnect(RPostgres::Postgres(), dbname="covid_trial_tracker", host=Sys.getenv("PGHOST"), user="postgres", password="postgres")
   }
 
   trials_original = RPostgres::dbGetQuery(con, "SELECT * FROM combined_view;")
@@ -159,6 +161,8 @@ server <- function(input, output, session) {
   ## Pulled from UI because these depend on data being loaded (which is now removed from Global.r)
   output$input_selection_sidepanel <- renderUI({
     tagList(
+      actionButton("generate_report", "Print PDF"),
+      hr(),
       paste("Data last updated: ", date_data_transfer, sep=""),
       hr(),
       checkboxGroupInput("flagged_trails", label="Display trials with flag:", inline=TRUE, choices=list("Accepted"= TRUE, "Rejected"=FALSE, "Unreviewed"="NA"), selected = c(TRUE, FALSE, "NA")),
@@ -465,7 +469,7 @@ server <- function(input, output, session) {
 
             column(6,
                    div(tags$b("Outcomes")),
-                   div(trial$outcome)
+                   div(trial$H)
             )
           ),
           tags$br(),
@@ -788,6 +792,11 @@ server <- function(input, output, session) {
       # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
 
       updateNavbarPage(session, "navbar", "Trial Selection")
+    })
+    
+    observeEvent(input$generate_report, {
+      print(nrow(trials_filtered()))
+      gen_report(input, trials_filtered())
     })
 
 }

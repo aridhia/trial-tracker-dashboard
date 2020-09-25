@@ -1,0 +1,153 @@
+\documentclass[11pt,english,a4paper]{report}
+
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage{multirow}
+\usepackage[hidelinks]{hyperref}
+\usepackage{supertabular}
+
+\usepackage[utf8]{inputenc}
+
+\renewcommand{\aboverulesep}{0pt}
+\renewcommand{\belowrulesep}{0pt}
+
+\definecolor{blue}{cmyk}{0.99,0.25,0,0}
+
+\makeatletter
+\@ifundefined{c@rownum}{%
+	\let\c@rownum\rownum
+}{}
+\@ifundefined{therownum}{%
+	\def\therownum{\@arabic\rownum}%
+}{}
+\makeatother
+
+
+
+\begin{document}
+\rowcolors{0}{blue!5}{white}
+
+\title{Covid Trial Tracker Report}
+
+\section[Filter Options]{Filter Options}
+
+\begin{table}[h]
+	\rowcolors{0}{blue!5}{white}
+	\centering
+	\fontsize{8pt}{9pt}\selectfont
+	\setlength{\extrarowheight}{.75ex}
+	\begin{tabular}{p{1cm} p{2cm} p{10cm}}
+		
+		\toprule
+		\multicolumn{2}{ p{3cm} }{\textbf{Option}} & \textbf{Value} \\
+		\midrule
+		\multicolumn{2}{ p{3cm} }{\textbf{Date of Review}} & 24/09/2020 \\
+		\multicolumn{2}{ p{3cm} }{\textbf{Review Options}} & \\
+		 & \textbf{Accepted:} & TRUE \\
+		 & \textbf{Rejected:} & TRUE \\
+		 & \textbf{Unreviewed:} & TRUE \\
+		\bottomrule
+	\end{tabular}
+\end{table}	
+
+\section[Filter Results]{Filter Results}
+
+%\begin{table}[h]
+	\rowcolors{0}{blue!5}{white}
+	\centering
+	\fontsize{8pt}{9pt}\selectfont
+	\setlength{\extrarowheight}{.75ex}
+	\begin{supertabular}{p{0.5cm} p{1.5cm} p{1.5cm} p{1.5cm} p{1.5cm} p{1.5cm} p{1.5cm} p{1.5cm} p{1.5cm}}
+		
+				
+			
+		
+			\toprule
+			\multicolumn{9}{l}{\textbf{ EUCTR2020-001722-66-ES }} \\
+			& \multicolumn{8}{l}{\textbf{Title: } Plasma Turnover In Patients With Covid-19 Disease And Invasive Mechanical Ventilation: A Randomised Study - Rep-Covid } \\
+			\midrule
+			& \multicolumn{4}{l}{\textbf{Institution}} & \multicolumn{4}{l}{\textbf{URL}} \\
+			& \multicolumn{4}{p{6cm}}{ Fundació Clínic Per A La Recerca Biomèdica } & 
+				\multicolumn{4}{p{6cm}}{ \url{  }} \\
+			\midrule
+			& \multicolumn{2}{l}{\textbf{Date Registered}} & \multicolumn{2}{l}{\textbf{Date Updated}} & \multicolumn{2}{l}{\textbf{Trial Start Date}} & \multicolumn{2}{l}{\textbf{Primary Completion}} \\
+			& \multicolumn{2}{l}{ 27/04/2020} &
+				\multicolumn{2}{l}{ N/A} &
+				\multicolumn{2}{l}{ 23/04/2020} &
+				\multicolumn{2}{l}{ N/A} \\
+			\midrule
+			& \multicolumn{2}{l}{\textbf{Patient Setting}} & \multicolumn{2}{l}{\textbf{Expected No. of Patients}} & \multicolumn{2}{l}{\textbf{Recruitment Status}} & \multicolumn{2}{l}{\textbf{Patient Age}} \\
+			& \multicolumn{2}{l}{ ICU } & 
+				\multicolumn{2}{l}{ 116 } & 
+				\multicolumn{2}{l}{ Not Recruiting } & 
+				\multicolumn{2}{l}{ NA } \\
+			\midrule
+			& \multicolumn{2}{l}{\textbf{Therapy Target}} & \multicolumn{2}{l}{\textbf{Covid-19 Status}} & \multicolumn{2}{l}{\textbf{Study Design}} & \multicolumn{2}{l}{\textbf{Blinding}} \\
+			& \multicolumn{2}{p{3cm}}{ Coronavirus (Covid-19) Infection With Respiratory Failure Requiring Mechanical Ventilation. $<$Br$>$Meddra Version: 23.0
+Level: Pt
+Classification Code 10051905
+Term: Coronavirus Infection
+System Organ Class: 10021881 - Infections And Infestations
+ $<$Br$>$Meddra Version: 21.1
+Level: Pt
+Classification Code 10067221
+Term: Mechanical Ventilation
+System Organ Class: 10042613 - Surgical And Medical Procedures
+;Therapeutic Area: Diseases [C] - Virus Diseases [C02] } & 
+				\multicolumn{2}{l}{ Confirmed } & 
+				\multicolumn{2}{l}{ Randomised } &
+				\multicolumn{2}{l}{ Open-Label } \\
+			\midrule
+			& \multicolumn{2}{l}{\textbf{Phase}} & \multicolumn{3}{l}{\textbf{Treatments}} & \multicolumn{3}{l}{\textbf{Outcomes}}\\
+			& \multicolumn{2}{p{3cm}}{ Human Pharmacology (I): No
+Therapeutic Exploratory (Ii): Yes
+Therapeutic Confirmatory - (Iii): No
+Therapeutic Use (Iv): No } &
+				\multicolumn{3}{p{4.5cm}}{ Immunoglobulins, Plasma based therapy } & 
+				\multicolumn{3}{p{4.5cm}}{ Mortality, ICU Admission, Hospitalization, Hospital Discharge, Invasive Mechanical Ventilation or ECMO, Organ Failure or Dysfunction (SOFA), Adverse Events, Renal Outcome (Unspecified) } \\
+			\bottomrule
+			\rowcolor{white}
+			\multicolumn{9}{c}{\setcounter{rownum}{0}} \\
+		
+				
+			
+		
+			\toprule
+			\multicolumn{9}{l}{\textbf{ NCT04381858 }} \\
+			& \multicolumn{8}{l}{\textbf{Title: } Convalescent Plasma Vs Human Immunoglobulin To Treat Covid-19 Pneumonia } \\
+			\midrule
+			& \multicolumn{4}{l}{\textbf{Institution}} & \multicolumn{4}{l}{\textbf{URL}} \\
+			& \multicolumn{4}{p{6cm}}{ Centenario Hospital Miguel Hidalgo } & 
+				\multicolumn{4}{p{6cm}}{ \url{  }} \\
+			\midrule
+			& \multicolumn{2}{l}{\textbf{Date Registered}} & \multicolumn{2}{l}{\textbf{Date Updated}} & \multicolumn{2}{l}{\textbf{Trial Start Date}} & \multicolumn{2}{l}{\textbf{Primary Completion}} \\
+			& \multicolumn{2}{l}{ 11/05/2020} &
+				\multicolumn{2}{l}{ 12/05/2020} &
+				\multicolumn{2}{l}{ 06/05/2020} &
+				\multicolumn{2}{l}{ 30/08/2020} \\
+			\midrule
+			& \multicolumn{2}{l}{\textbf{Patient Setting}} & \multicolumn{2}{l}{\textbf{Expected No. of Patients}} & \multicolumn{2}{l}{\textbf{Recruitment Status}} & \multicolumn{2}{l}{\textbf{Patient Age}} \\
+			& \multicolumn{2}{l}{ ICU } & 
+				\multicolumn{2}{l}{ 500 } & 
+				\multicolumn{2}{l}{ Recruiting } & 
+				\multicolumn{2}{l}{ Child, Adult, Senior } \\
+			\midrule
+			& \multicolumn{2}{l}{\textbf{Therapy Target}} & \multicolumn{2}{l}{\textbf{Covid-19 Status}} & \multicolumn{2}{l}{\textbf{Study Design}} & \multicolumn{2}{l}{\textbf{Blinding}} \\
+			& \multicolumn{2}{p{3cm}}{ Covid-19 Pneumonia } & 
+				\multicolumn{2}{l}{ Yes } & 
+				\multicolumn{2}{l}{ Randomised } &
+				\multicolumn{2}{l}{ Double } \\
+			\midrule
+			& \multicolumn{2}{l}{\textbf{Phase}} & \multicolumn{3}{l}{\textbf{Treatments}} & \multicolumn{3}{l}{\textbf{Outcomes}}\\
+			& \multicolumn{2}{p{3cm}}{ 3 } &
+				\multicolumn{3}{p{4.5cm}}{ Immunoglobulins, Plasma based therapy } & 
+				\multicolumn{3}{p{4.5cm}}{ Hospitalization, Pneumonia or ARDS, Invasive Mechanical Ventilation or ECMO } \\
+			\bottomrule
+			\rowcolor{white}
+			\multicolumn{9}{c}{\setcounter{rownum}{0}} \\
+		
+		
+		
+	\end{supertabular}
+
+\end{document}

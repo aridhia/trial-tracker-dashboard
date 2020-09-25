@@ -1,0 +1,109 @@
+\documentclass[11pt,english,a4paper]{report}
+
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage{multirow}
+\usepackage[hidelinks]{hyperref}
+\usepackage{supertabular}
+
+\usepackage[utf8]{inputenc}
+
+\renewcommand{\aboverulesep}{0pt}
+\renewcommand{\belowrulesep}{0pt}
+
+\definecolor{blue}{cmyk}{0.99,0.25,0,0}
+
+\makeatletter
+\@ifundefined{c@rownum}{%
+	\let\c@rownum\rownum
+}{}
+\@ifundefined{therownum}{%
+	\def\therownum{\@arabic\rownum}%
+}{}
+\makeatother
+
+<% custom_sanitize <- function(x) {
+
+	x <- Hmisc::latexTranslate(enc2utf8(shiny::HTML(toString(x))))
+	return(x)
+
+	
+} %>
+
+\begin{document}
+\rowcolors{0}{blue!5}{white}
+
+\title{Covid Trial Tracker Report}
+
+\section[Filter Options]{Filter Options}
+
+\begin{table}[h]
+	\rowcolors{0}{blue!5}{white}
+	\centering
+	\fontsize{8pt}{9pt}\selectfont
+	\setlength{\extrarowheight}{.75ex}
+	\begin{tabular}{p{1cm} p{2cm} p{10cm}}
+		
+		\toprule
+		\multicolumn{2}{ p{3cm} }{\textbf{Option}} & \textbf{Value} \\
+		\midrule
+		\multicolumn{2}{ p{3cm} }{\textbf{Date of Review}} & <%=format(options_list$date_of_review, "%d/%m/%Y")%> \\
+		\multicolumn{2}{ p{3cm} }{\textbf{Review Options}} & \\
+		 & \textbf{Accepted:} & <%=options_list$flagged_trials_accepted%> \\
+		 & \textbf{Rejected:} & <%=options_list$flagged_trials_rejected%> \\
+		 & \textbf{Unreviewed:} & <%=options_list$flagged_trials_unreviewed%> \\
+		\bottomrule
+	\end{tabular}
+\end{table}	
+
+\section[Filter Results]{Filter Results}
+
+%\begin{table}[h]
+	\rowcolors{0}{blue!5}{white}
+	\centering
+	\fontsize{8pt}{9pt}\selectfont
+	\setlength{\extrarowheight}{.75ex}
+	\begin{supertabular}{p{0.5cm} p{1.5cm} p{1.5cm} p{1.5cm} p{1.5cm} p{1.5cm} p{1.5cm} p{1.5cm} p{1.5cm}}
+		
+		<% for (row in 1:nrow(trials)) { %>		
+			<% trial <- trials[row,] %>
+		
+			\toprule
+			\multicolumn{9}{l}{\textbf{ <%= custom_sanitize(trial$trial_id) %> }} \\
+			& \multicolumn{8}{p{12cm}}{\textbf{Title: } <%= custom_sanitize(trial$scientific_title) %> } \\
+			\midrule
+			& \multicolumn{4}{l}{\textbf{Institution}} & \multicolumn{4}{l}{\textbf{URL}} \\
+			& \multicolumn{4}{p{6cm}}{ <%=custom_sanitize(trial$institution)%> } & 
+				\multicolumn{4}{p{6cm}}{ \url{ <%=trial$url%> }} \\
+			\midrule
+			& \multicolumn{2}{l}{\textbf{Date Registered}} & \multicolumn{2}{l}{\textbf{Date Updated}} & \multicolumn{2}{l}{\textbf{Trial Start Date}} & \multicolumn{2}{l}{\textbf{Primary Completion}} \\
+			& \multicolumn{2}{l}{ <%=custom_sanitize(ifelse((is.null(trial$date_registered) || is.na(trial$date_registered)), "N/A", format(trial$date_registered, "%d/%m/%Y")))%>} &
+				\multicolumn{2}{l}{ <%=custom_sanitize(ifelse((is.null(trial$date_updated) || is.na(trial$date_updated)), "N/A", format(trial$date_updated, "%d/%m/%Y")))%>} &
+				\multicolumn{2}{l}{ <%=custom_sanitize(ifelse((is.null(trial$trial_start_date) || is.na(trial$trial_start_date)), "N/A", format(trial$trial_start_date, "%d/%m/%Y")))%>} &
+				\multicolumn{2}{l}{ <%=custom_sanitize(ifelse((is.null(trial$date_primary_completion) || is.na(trial$date_primary_completion)), "N/A", format(trial$date_primary_completion, "%d/%m/%Y")))%>} \\
+			\midrule
+			& \multicolumn{2}{l}{\textbf{Patient Setting}} & \multicolumn{2}{l}{\textbf{Expected No. of Patients}} & \multicolumn{2}{l}{\textbf{Recruitment Status}} & \multicolumn{2}{l}{\textbf{Patient Age}} \\
+			& \multicolumn{2}{l}{ <%=custom_sanitize(trial$patient_setting)%> } & 
+				\multicolumn{2}{l}{ <%=custom_sanitize(trial$expected_enrollment)%> } & 
+				\multicolumn{2}{l}{ <%=custom_sanitize(trial$recruitment_status)%> } & 
+				\multicolumn{2}{l}{ <%=custom_sanitize(trial$age)%> } \\
+			\midrule
+			& \multicolumn{2}{l}{\textbf{Therapy Target}} & \multicolumn{2}{l}{\textbf{Covid-19 Status}} & \multicolumn{2}{l}{\textbf{Study Design}} & \multicolumn{2}{l}{\textbf{Blinding}} \\
+			& \multicolumn{2}{p{3cm}}{ <%=custom_sanitize(trial$therapy_target)%> } & 
+				\multicolumn{2}{l}{ <%=custom_sanitize(trial$covid19_status)%> } & 
+				\multicolumn{2}{l}{ <%=custom_sanitize(trial$study_design_final)%> } &
+				\multicolumn{2}{l}{ <%=custom_sanitize(trial$blinding_final)%> } \\
+			\midrule
+			& \multicolumn{2}{l}{\textbf{Phase}} & \multicolumn{3}{l}{\textbf{Treatments}} & \multicolumn{3}{l}{\textbf{Outcomes}}\\
+			& \multicolumn{2}{p{3cm}}{ <%=custom_sanitize(trial$phase)%> } &
+				\multicolumn{3}{p{4.5cm}}{ <%=custom_sanitize(trial$corrected_treatment_name)%> } & 
+				\multicolumn{3}{p{4.5cm}}{ <%=custom_sanitize(trial$outcome)%> } \\
+			\bottomrule
+			\rowcolor{white}
+			\multicolumn{9}{c}{\setcounter{rownum}{0}} \\
+		
+		<% } %>
+		
+	\end{supertabular}
+
+\end{document}
