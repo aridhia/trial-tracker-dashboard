@@ -172,7 +172,9 @@ server <- function(input, output, session) {
       hr(),
       selectInput("outcome", "Outcome:", choices = outcomes, multiple = TRUE, selected = NULL),
       radioButtons("outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE),
-      shinySaveButton("generate_report", "Generate Report", 'Select download location...', filetype = ("csv"))
+      hr(),
+      shinySaveButton("generate_report", "Generate Report", 'Select download location...', filetype = ("csv")),
+      actionButton("generate_pdf_report", "Print PDF")
     )
   })
 
@@ -881,6 +883,11 @@ server <- function(input, output, session) {
       # updateRadioButtons(session,"outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE)
 
       updateNavbarPage(session, "navbar", "Trial Selection")
+    })
+    
+    observeEvent(input$generate_pdf_report, {
+      print(nrow(trials_filtered()))
+      gen_report(input, trials_filtered())
     })
 
 }
