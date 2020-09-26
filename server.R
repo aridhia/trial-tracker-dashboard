@@ -428,6 +428,7 @@ server <- function(input, output, session) {
   shinyFileSave(input, "generate_pdf_report", roots = roots, defaultPath = "",
                 defaultRoot = defaultRoot, session = session)
 
+  # TODO - could these two handlers be templated?
   observeEvent(input$generate_csv_report, {
     if (!is.integer(input$generate_csv_report)) {
       # shinyFiles check if file has been selected
@@ -456,11 +457,9 @@ server <- function(input, output, session) {
       savepath <- savepath$datapath
       log_message(paste('generate_pdf_report', savepath))
 
-      # print(paste0(nrow(trials_filtered()), " vs. ", nrow(trials_subset_reactive())))
       shinyjs::removeClass(id = "report_generating_gif", class = "hidden")
       shinyjs::addClass(id = "generate_pdf_report", class = "disabled")
 
-      # Defined in ./reporting/report_generator
       generate_pdf_report(input, trials_filtered(), savepath)
 
       shinyjs::addClass(id = "report_generating_gif", class = "hidden")
