@@ -12,24 +12,38 @@ This app was developed as part of the COVID-19 Workbench technology programme.
 In order to run this app and associated scripts, the following need to be installed:
 
 - PostgreSQL database
-- R 3.6.1 or greater
-- R package dependencies. From R:
-```R
-install.packages(c("dplyr", 
-                    "DT", 
-                    "shiny", 
-                    "shinydashboard", 
-                    "shinyjs", 
-                    "shinythemes", 
-                    "shinyFiles",
-                    "tidyr", 
-                    "lubridate", 
-                    "purrr", 
-                    "stringr", 
-                    "plotly", 
-                    "DBI", 
-                    "RPostgres"))
+- R 3.6.3 or greater
+- R package dependencies. 
+
+As a pre-requisite for the R packages, a number of development packages need to be installed:
+```sh
+sudo apt install postgresql-server-dev-all
+sudo apt install libcurl4-openssl-dev
+sudo apt install libxml2-dev
+sudo apt install libmagick++-dev
 ```
+
+Then. to install R package dependencies, run the following from R:
+```R
+install.packages(c( "DBI",
+                    "RPostgres",
+                    "dplyr",
+                    "DT",
+                    "shiny",
+                    "shinyjs",
+                    "shinythemes",
+                    "tidyr",
+                    "lubridate",
+                    "purrr",
+                    "stringr",
+                    "plotly",
+                    "shinyFiles","knitr",
+                    "kableExtra",
+                    "brew",
+                    "dplR"))
+```
+
+> If a dependency is missing - check `global.R` for what is actually imported
 
 ## Database
 

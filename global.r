@@ -1,11 +1,14 @@
-#install.packages(c("dplyr", "DT", "shiny", "shinydashboard", "shinyjs", "shinythemes", "tidyr", "lubridate", "purrr", "stringr", "plotly", "DBI", "RPostgres"))
-
-if(exists("xap.conn")){
+# Initialisation requirements e.g. library imports
+if (exists("xap.conn")) {
   .libPaths("../R/3.6.3")
 }
 
-options(encoding = 'UTF-8')
+log_message <- function(message) {
+  cat(file = stderr(), format(Sys.time(), "%Y-%m-%d %H:%M:%S"), " - ", message, "\n")
+}
 
+library(DBI)
+library(RPostgres)
 library(dplyr)
 library(DT)
 library(shiny)
@@ -16,15 +19,12 @@ library(lubridate)
 library(purrr)
 library(stringr)
 library(plotly)
-library(DBI)
-library(RPostgres)
 library(shinyFiles)
-
+# For reporting
 library(knitr)
 library(kableExtra)
 library(brew)
 library(dplR)
 
-source("./reporting/reporting_utils.r")
-
+source("./reporting/report_generator.r")
 
