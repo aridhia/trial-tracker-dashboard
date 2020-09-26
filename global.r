@@ -4,6 +4,8 @@ if(exists("xap.conn")){
   .libPaths("../R/3.6.3")
 }
 
+options(encoding = 'UTF-8')
+
 library(dplyr)
 library(DT)
 library(shiny)
@@ -17,5 +19,12 @@ library(plotly)
 library(DBI)
 library(RPostgres)
 library(shinyFiles)
+
+library(knitr)
+library(kableExtra)
+library(brew)
+library(dplR)
+
+source("./reporting/reporting_utils.r")
 
 
