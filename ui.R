@@ -17,11 +17,14 @@ ui <- fluidPage(
         uiOutput("input_selection_sidepanel")
       ),
       mainPanel(
+        # Loading indicator
         div(id = "loading_screen", style = "display: inline-block",
               h4(style = "text-align: center; position: relative; top: 235px; font-size: 200%", "Loading trial data..."),
               img(src = 'loading_gif.gif')
             ),
-# div(class = "dataTables_info", id = "DataTables_Table_0_info",),
+        # Fatal error message (if e.g. failed to connect)
+        textOutput("error_message"),
+        # The main table
         dataTableOutput("trials")
       )
     ),
