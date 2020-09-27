@@ -1,34 +1,4 @@
-# Utility function required for PDF reporting (old)
-brew2pdf <- function(input, output_dir, envir = parent.frame()) {
-
-  brew_file_name <- basename(input)
-  rnw_file_name <- sub(".brew$", ".Rnw", brew_file_name)
-  tex_file_name <- sub(".brew$", ".tex", brew_file_name)
-  pdf_file_name <- sub(".brew$", ".pdf", brew_file_name)
-
-  rnw_file_path <- file.path(output_dir, rnw_file_name)
-  tex_file_path <- file.path(output_dir, tex_file_name)
-  pdf_file_path <- file.path(output_dir, pdf_file_name)
-
-  brew(input, output = rnw_file_path, envir = envir)
-
-  fileConn <- file(rnw_file_path)
-  temp_file <- readLines(fileConn, encoding = "UTF-8")
-  close(fileConn)
-  fileConn <- file(tex_file_path)
-  writeLines(temp_file, tex_file_path)
-  close(fileConn)
-
-  # when using figures knitr expects compilation to be done from the output directory
-  # so unfortunately we need to temporarily change the working directory
-  orig_wd <- setwd(output_dir)
-  # return to the original working directory on function exit (including exit via error)
-  on.exit(setwd(orig_wd))
-  # knit2pdf(rnw_file_name, output = tex_file_name, envir = envir)
-
-  tinytex::latexmk(tex_file_name, engine = "pdflatex")
-}
-
+# Take the current filter options and construct a dataframe for ease of display
 build_filter <- function(input) {
   settings <- c(
     'Date generated',
@@ -65,6 +35,75 @@ build_filter <- function(input) {
   return(filter)
 }
 
+# -------------------------------------------------------------------------------------------------------
+# Sanitize output for LaTeX
+# -------------------------------------------------------------------------------------------------------
+
+custom_sanitize <- function(x) {
+	
+	# replace any ampersands so they are caught by Hmisc
+	x <- gsub("\u26", "&", x)
+	x <- gsub("\uff06", "&", x)
+	x <- gsub("\ufe60", "&", x)
+	
+	# can't remember what shiny::HTML was for. ignoring for now
+	# x <- Hmisc::latexTranslate(enc2utf8(shiny::HTML(toString(x))))
+	# x <- Hmisc::latexTranslate(enc2utf8(toString(x)))
+	
+	# latexify seems to be a more robust function for doing this
+	# but requires a couple of fixes
+	x <- dplR::latexify(enc2utf8(toString(x)), doublebackslash = FALSE)
+	
+	# fix latexify quote changes
+	x <- gsub("\\\\textquotesingle", "'", x)
+	x <- gsub("\\\\textquotedbl", '"', x)
+	
+	# fix guillemet changes
+	x <- gsub("\\\\guillemotleft", "$\\\\ll$", x)
+	x <- gsub("\\\\guillemotright", "$\\\\gg$", x)
+	
+	# normal less/greater and equal sign
+	x <- gsub("\u2264", "$\\\\leq$", x)
+	x <- gsub("\u2265", "$\\\\geq$", x)
+	
+	# slanted less/greater than and equal sign
+	x <- gsub("\u2a7d", "$\\\\leqslant$", x)
+	x <- gsub("\u2a7e", "$\\\\geqslant$", x)
+	
+	
+	# greek letters
+	x <- gsub("\u03b1", "$\\\\alpha$", x)
+	x <- gsub("\u03b2", "$\\\\beta$", x)
+	x <- gsub("\u03b3", "$\\\\gamma$", x)
+	x <- gsub("\u03b4", "$\\\\delta$", x)
+	x <- gsub("\u03b5", "$\\\\epsilon$", x)
+	x <- gsub("\u03b6", "$\\\\zeta$", x)
+	x <- gsub("\u03b7", "$\\\\eta$", x)
+	x <- gsub("\u03b8", "$\\\\theta$", x)
+	x <- gsub("\u03b9", "$\\\\iota$", x)
+	x <- gsub("\u03ba", "$\\\\kappa$", x)
+	x <- gsub("\u03bb", "$\\\\lambda$", x)
+	x <- gsub("\u03bc", "$\\\\mu$", x)
+	x <- gsub("\u03bd", "$\\\\nu$", x)
+	x <- gsub("\u03be", "$\\\\xi$", x)
+	x <- gsub("\u03bf", "$\\\\omicron$", x)
+	x <- gsub("\u03c0", "$\\\\pi$", x)
+	x <- gsub("\u03c1", "$\\\\rho$", x)
+	x <- gsub("\u03c2", "$\\\\varsigma$", x)
+	x <- gsub("\u03c3", "$\\\\sigma$", x)
+	x <- gsub("\u03c4", "$\\\\tau$", x)
+	x <- gsub("\u03c5", "$\\\\upsilon$", x)
+	x <- gsub("\u03c6", "$\\\\phi$", x)
+	x <- gsub("\u03c7", "$\\\\chi$", x)
+	x <- gsub("\u03c8", "$\\\\psi$", x)
+	x <- gsub("\u03c9", "$\\\\omega$", x)
+	
+	# remove any other unicode character 
+	x <- gsub("[^\x20-\x7E]", "", x)
+	
+	return(x)
+
+}
 
 # -------------------------------------------------------------------------------------------------------
 # PDF output
@@ -73,11 +112,26 @@ build_filter <- function(input) {
 generate_pdf_report <- function(input, trials, savepath) {
   log_message(paste0('PDF Report - Saving to: ', savepath))
 
-  rmarkdown::render('./reporting/report.Rmd', params = c(filter = build_filter(input), df = trials))
+  output_dir <- dirname(savepath)
+  output_file <- basename(savepath)
+  filter <- build_filter(input)
+  
+  df <- trials 
+  # Sanitze output for text columns
+  df$scientific_title          <- lapply(df$scientific_title, custom_sanitize)
+  df$institution               <- lapply(df$institution, custom_sanitize)              
+  df$patient_setting           <- lapply(df$patient_setting, custom_sanitize)
+  df$study_design_final        <- lapply(df$study_design_final, custom_sanitize)
+  df$corrected_treatment_name  <- lapply(df$corrected_treatment_name, custom_sanitize)
+  df$outcome                   <- lapply(df$outcome, custom_sanitize)
+  df$phase                     <- lapply(df$phase, custom_sanitize)
+  # Reduce the size of 'Flag' to [Y, N, -]
+  df$flag                      <- lapply(df$flag, function(x) { ifelse(is.na(x), '-', ifelse(x, 'Y', 'N')) })
+
+  rmarkdown::render('./reporting/report.Rmd', output_file=output_file, output_dir=output_dir, intermediates_dir=output_dir, clean=TRUE)
 
   log_message("PDF Report - complete")
 }
-
 
 # -------------------------------------------------------------------------------------------------------
 # CSV output
