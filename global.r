@@ -24,10 +24,12 @@ library(stringr)
 library(plotly)
 library(shinyFiles)
 # For reporting
+library(rmarkdown)
 library(knitr)
 library(kableExtra)
 library(brew)
 library(dplR)
+library(readr)
 
 # Module(s)
 source("./reporting/report_generator.r")

@@ -40,6 +40,8 @@ install.packages(c( "DBI",
                     "shinyFiles","knitr",
                     "kableExtra",
                     "brew",
+                    "readr",
+                    "rmarkdown",
                     "dplR"))
 ```
 
