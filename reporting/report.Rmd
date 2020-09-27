@@ -16,13 +16,12 @@ always_allow_html: true
 \selectfont
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 library(kableExtra)
+library(pander)
 ```
 # Filters Applied
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 kable(filter, format="markdown", longtable=TRUE) 
-# %>%
-# kable_styling(latex_options=c("repeat_header"), full_width=TRUE, position="left", font_size=9)
 ```
 
 Filters returned `r nrow(df)` record(s).
@@ -61,7 +60,6 @@ log_message(paste('Col width check:', sum(col_widths)))
 #                1       2       3       4        5       6       7        8       9      10      11       12
 justify = c('left', 'left', 'left', 'left', 'right', 'left', 'left', 'right', 'left', 'left', 'left', 'right') 
 
-library(pander)
 set.alignment('left', row.names = 'left')
 pander::pander(df, split.table = 1000, split.cells = col_widths, justify = justify)
 ```

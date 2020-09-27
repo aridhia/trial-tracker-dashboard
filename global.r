@@ -30,6 +30,8 @@ library(kableExtra)
 library(brew)
 library(dplR)
 library(readr)
+library(pander)
+
 
 # Module(s)
 source("./reporting/report_generator.r")

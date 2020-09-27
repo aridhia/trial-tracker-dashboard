@@ -42,6 +42,7 @@ install.packages(c( "DBI",
                     "brew",
                     "readr",
                     "rmarkdown",
+                    "pander",
                     "dplR"))
 ```
 
