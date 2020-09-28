@@ -5,7 +5,8 @@ server <- function(input, output, session) {
   autoInvalidate <- reactiveTimer(30000)
   observe({
     autoInvalidate()
-    log_message('.')
+    # Print a dot - no need to log
+    print('.')
   })
 
   # TODO - refactor this to the database
@@ -187,7 +188,8 @@ server <- function(input, output, session) {
       tagList(
         paste("Data last updated: ", date_data_transfer, sep = ""),
         hr(),
-        p(tags$b('Generate Report')),
+        tags$b('Generate Report:'),
+        br(),
         shinySaveButton("generate_csv_report", "CSV", 'Select download location...', filetype = ("csv")),
         shinySaveButton("generate_pdf_report", "PDF", 'Select download location...', filetype = ("pdf")),
         img(id = "report_generating_gif", src = 'report_generating.gif', style = "width: 20px", class = "hidden"),

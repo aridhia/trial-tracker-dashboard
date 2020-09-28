@@ -31,7 +31,7 @@ build_filter <- function(input) {
   filter <- data.frame(settings, values)
   names(filter) <- c('Setting', 'Value')
 
-  summary(filter)
+  # summary(filter)
   return(filter)
 }
 
