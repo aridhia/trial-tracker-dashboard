@@ -41,7 +41,7 @@ build_filter <- function(input) {
 
 custom_sanitize <- function(x) {
 	
-	# replace any ampersands so they are caught by Hmisc
+	# replace any ampersands so they are caught by filter
 	x <- gsub("\u26", "&", x)
 	x <- gsub("\uff06", "&", x)
 	x <- gsub("\ufe60", "&", x)
@@ -62,6 +62,9 @@ custom_sanitize <- function(x) {
 	x <- gsub("\\\\guillemotleft", "$\\\\ll$", x)
 	x <- gsub("\\\\guillemotright", "$\\\\gg$", x)
 	
+	# fix beta symbol
+	x <- gsub("\\\\ss", "$\\\\beta$", x)
+	
 	# normal less/greater and equal sign
 	x <- gsub("\u2264", "$\\\\leq$", x)
 	x <- gsub("\u2265", "$\\\\geq$", x)
@@ -69,7 +72,6 @@ custom_sanitize <- function(x) {
 	# slanted less/greater than and equal sign
 	x <- gsub("\u2a7d", "$\\\\leqslant$", x)
 	x <- gsub("\u2a7e", "$\\\\geqslant$", x)
-	
 	
 	# greek letters
 	x <- gsub("\u03b1", "$\\\\alpha$", x)
@@ -86,7 +88,7 @@ custom_sanitize <- function(x) {
 	x <- gsub("\u03bc", "$\\\\mu$", x)
 	x <- gsub("\u03bd", "$\\\\nu$", x)
 	x <- gsub("\u03be", "$\\\\xi$", x)
-	x <- gsub("\u03bf", "$\\\\omicron$", x)
+	x <- gsub("\u03bf", "$o$", x) # x <- gsub("\u03bf", "$\\\\omicron$", x) # Doesn't exist in latex?
 	x <- gsub("\u03c0", "$\\\\pi$", x)
 	x <- gsub("\u03c1", "$\\\\rho$", x)
 	x <- gsub("\u03c2", "$\\\\varsigma$", x)
