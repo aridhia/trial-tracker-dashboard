@@ -41,7 +41,7 @@ build_filter <- function(input) {
 
 custom_sanitize <- function(x) {
 	
-	# replace any ampersands so they are caught by Hmisc
+	# replace any ampersands so they are caught by filter
 	x <- gsub("\u26", "&", x)
 	x <- gsub("\uff06", "&", x)
 	x <- gsub("\ufe60", "&", x)
