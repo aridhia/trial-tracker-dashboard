@@ -1,0 +1,65 @@
+---
+title: "Trial Tracker Report"
+output:
+  pdf_document:
+    toc: false
+    number_sections: false
+    df_print: kable
+    highlight: tango
+    includes:
+        in_header: "preamble.tex"
+classoption: landscape,a4paper
+geometry: rmargin=0.5cm,lmargin=0.5cm,tmargin=2cm,bmargin=2cm
+always_allow_html: true
+---
+\fontsize{10}{11}
+\selectfont
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+library(kableExtra)
+library(pander)
+```
+# Filters Applied
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+kable(filter, format="markdown", longtable=TRUE) 
+```
+
+Filters returned `r nrow(df)` record(s).
+
+# Provenance
+
+- File: \currfilebase.pdf
+- Report produced: `r format(Sys.time(), "%Y-%m-%d %H:%M:%S")`
+
+\newpage
+\fontfamily{phv}
+\fontsize{7}{8}
+\selectfont
+# Selected Trials
+\hspace{-3cm}
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+# Relabel the columns
+names(df) <- c( "Trial ID",             # 1
+                "Title",                # 2
+                "Institution",          # 3
+                "Primary completion",   # 4
+                "Expected Enrollment",  # 5
+                "Patient Setting",      # 6
+                "Final Design",         # 7
+                "# of Arms",            # 8 
+                "Treatment Name",       # 9
+                "Outcome",              # 10    
+                "Phase",                # 11
+                "Flag")                 # 12
+
+#               1   2   3   4   5   6   7   8   9  10  11  12
+col_widths = c(30, 15, 10,  5,  5,  3, 10,  5, 10,  5,  5,  2)
+log_message(paste('Col width check:', sum(col_widths)))
+
+#                1       2       3       4        5       6       7        8       9      10      11       12
+justify = c('left', 'left', 'left', 'left', 'right', 'left', 'left', 'right', 'left', 'left', 'left', 'right') 
+
+set.alignment('left', row.names = 'left')
+pander::pander(df, split.table = 1000, split.cells = col_widths, justify = justify)
+```

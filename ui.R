@@ -1,80 +1,47 @@
+# The User interface
+#
+# 2 Tabs:
+# - Trial Selection: for the trial table and filter controls,
+# - Summary: high level summary charts of the trials in the database
+#
 ui <- fluidPage(
+  theme = shinytheme("flatly"),
   tags$head(
-    tags$style(
-      HTML("
-		    .modal-dialog{ width: 80%;}
-		    .modal-title{font-weight: 900;}
-		    .modal-header.accepted{background-color: #7bd881;}
-		    .modal-header.rejected{background-color: #f58484;}
-		    .modal-footer.accepted{background-color: #7bd881;}
-		    .modal-footer.rejected{background-color: #f58484;}
-
-
-		    .svg-container {
-		    margin-top:40px !important;
-		    }
-		    .modebar-container {
-		    top:-30px !important;
-		    }
-		    table.dataTable.display tbody tr.odd.accepted {
-		      background-color: #abfbb0;
-		    }
-		    table.dataTable.display tbody tr.odd.rejected {
-		      background-color: #fbd3d3;
-		    }
-		    table.dataTable.display tbody tr.even.accepted {
-		      background-color: #c2fdc5;
-		    }
-		    table.dataTable.display tbody tr.even.rejected {
-		      background-color: #ffe0e0;
-		    }
-		    .dataTables_info {
-		        display: inline-block;
-            max-width: 100%;
-            margin-bottom: 5px;
-            font-weight: bold;
-		    }
-		    table.dataTable {
-		      margin: 10px auto !important
-		    }
-		    #shiny-notification-panel {
-		    top: 0px;
-		    right: 0px;
-		    }
-      ")
-    )
+    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
   ),
-  theme = shinytheme("spacelab"),
-  navbarPage("COVID-19 TRIAL DASHBOARD",
-             id = "navbar",
+  navbarPage("Trial Tracker Dashboard", id = "navbar", position = "static-top",
     tabPanel("Trial Selection",
       sidebarPanel(
         useShinyjs(),
-        width=3,
+        width = 2,
         uiOutput("input_selection_sidepanel")
       ),
-
       mainPanel(
-
-        div(id="loading_screen", style="display: inline-block",
-              h4(style="text-align: center; position: relative; top: 235px; font-size: 200%", "Loading trial data..."),
-              img(src='loading_gif.gif')
+        # Loading indicator
+        div(id = "loading_screen", style = "display: inline-block",
+              h4(style = "text-align: center; position: relative; top: 235px; font-size: 200%", "Loading trial data..."),
+              img(src = 'loading_gif.gif')
             ),
-        div(class="dataTables_info", id="DataTables_Table_0_info",),
+        # Fatal error message (if e.g. failed to connect)
+        textOutput("error_message"),
+        # The main table
         dataTableOutput("trials")
       )
     ),
     tabPanel("Summary",
-             fluidRow(
-               column(6, textOutput("completedTrials")),
-               column(6, )),
-             hr(),
-             fluidRow(
-               column(12, plotlyOutput("noOfMonths"))),
-             hr(),
-             fluidRow(
-               column(6, plotlyOutput("noOfOutcomes")),
-               column(6, plotlyOutput("noOfTreatments")))
+      fluidRow(
+        column(6, textOutput("completedTrials")),
+        column(6,)
+      ),
+      hr(),
+      fluidRow(
+        column(12, plotlyOutput("noOfMonths"))
+      ),
+      hr(),
+      fluidRow(
+        column(6, plotlyOutput("noOfOutcomes")),
+        column(6, plotlyOutput("noOfTreatments"))
+      )
     )
   )
 )
