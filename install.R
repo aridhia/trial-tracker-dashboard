@@ -27,7 +27,8 @@ check_or_install <- function(x){
     if( ! require( i , character.only = TRUE ) ){
       print(paste('Installing:', i))
       #  If package was not able to be loaded then re-install
-      install.packages( i , dependencies = TRUE )
+      # install.packages( i , dependencies = TRUE ) # dependencies = TRUE does not work in workspace
+      install.packages( i )
       #  Load package after installing
       require( i , character.only = TRUE )
     }
