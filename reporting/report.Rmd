@@ -42,14 +42,14 @@ Filters returned `r nrow(df)` record(s).
 # Relabel the columns
 names(df) <- c( "Trial ID",             # 1
                 "Title",                # 2
-                "Institution",          # 3
+                "Institution and Location/Country",          # 3
                 "Primary completion",   # 4
                 "Expected Enrollment",  # 5
                 "Patient Setting",      # 6
                 "Final Design",         # 7
                 "# of Arms",            # 8 
                 "Treatment Name",       # 9
-                "Outcome",              # 10    
+                "Outcomes Primary/Secondary",              # 10    
                 "Phase",                # 11
                 "Flag")                 # 12
 
