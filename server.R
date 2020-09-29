@@ -19,9 +19,6 @@ server <- function(input, output, session) {
   shinyjs::addClass(id="error_message", class="hidden")
   # 
   # Sys.setenv(PGHOST = "10.0.0.4") # ensures WS can connect to database even if DNS fails
-  Sys.setenv(PGDATABASE = "covid_trial_tracker")
-  Sys.setenv(PGUSER = "postgres")
-  Sys.setenv(PGPASSWORD = "postgres")
   if (!dbCanConnect(RPostgres::Postgres(), dbname = Sys.getenv("PGDATABASE"), 
                                           host = Sys.getenv("PGHOST"), 
                                           port = Sys.getenv("PORT"), 

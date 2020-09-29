@@ -143,7 +143,7 @@ generate_pdf_report <- function(input, trials, savepath) {
   # Reduce the size of 'Flag' to [Y, N, -]
   df$flag                      <- lapply(df$flag, function(x) { ifelse(is.na(x), '-', ifelse(x, 'Y', 'N')) })
 
-  rmarkdown::render('./reporting/report.Rmd', output_file=output_file, output_dir=output_dir, intermediates_dir=output_dir, clean=FALSE)
+  rmarkdown::render('./reporting/report.Rmd', output_file=output_file, output_dir=output_dir, intermediates_dir=output_dir, clean=TRUE)
 
   log_message("PDF Report - complete")
 }
