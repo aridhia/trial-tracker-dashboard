@@ -17,8 +17,8 @@ server <- function(input, output, session) {
   # -------------------------------------------------------------------------------------------------------
   # Test the connection - 
   shinyjs::addClass(id="error_message", class="hidden")
-  
-  # Sys.setenv(PGHOST = "10.0.0.4") # ensures WS can connect to database even if DNS fails
+  # 
+  Sys.setenv(PGHOST = "10.0.0.4") # ensures WS can connect to database even if DNS fails
   if (!dbCanConnect(RPostgres::Postgres(), dbname = Sys.getenv("PGDATABASE"), 
                                           host = Sys.getenv("PGHOST"), 
                                           port = Sys.getenv("PORT"), 
@@ -457,13 +457,53 @@ server <- function(input, output, session) {
 
         shinyjs::removeClass(id = "report_generating_gif", class = "hidden")
         shinyjs::addClass(id = "generate_csv_report", class = "disabled")
-
-        generate_csv_report(input, trials_subset_filtered(), savepath)
-
-        shinyjs::addClass(id = "report_generating_gif", class = "hidden")
-        shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
-
-        showNotification("CSV report complete", duration = 5, type = "message")
+        shinyjs::addClass(id = "generate_pdf_report", class = "disabled")
+        
+        # order_column <- input$trials_order$column
+        # order_column_direction <- input$trials_order$direction
+        order_column <- 4 # hard code by increasing completion date (ignore table sorting)
+        order_column_direction <- "asc" # hard code by increasing completion date (ignore table sorting)
+        
+        if (order_column != "") {
+          order_column_name <- names(trials_subset_filtered())[order_column]
+          order_column <- trials_subset_filtered()[[order_column_name]]
+          if (order_column_direction == "asc") {
+            sorted_columns <- trials_subset_filtered()[order(order_column, decreasing = FALSE), ]
+          } else if (order_column_direction == "desc") {
+            sorted_columns <- trials_subset_filtered()[order(order_column, decreasing = TRUE), ]
+          }
+          
+        } else {
+          sorted_columns <- trials_subset_filtered()
+        }
+        
+        rownames(sorted_columns) <- 1:nrow(sorted_columns) # required otherwise Rmd pdf creationg fails (not sure why?) here as well for redundancy
+        trycatch_output <- tryCatch(
+          expr = {
+            generate_csv_report(input, sorted_columns, savepath)
+            TRUE
+          },
+          warning = function(e) {
+            log_message(toString(e))
+            FALSE
+          },
+          error = function(e) {
+            log_message(toString(e))
+            FALSE
+          }
+        )
+        
+        if (trycatch_output) {
+          shinyjs::addClass(id = "report_generating_gif", class = "hidden")
+          shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
+          shinyjs::removeClass(id = "generate_pdf_report", class = "disabled")
+          showNotification("CSV report complete", duration = 5, type = "message")
+        } else {
+          shinyjs::addClass(id = "report_generating_gif", class = "hidden")
+          shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
+          shinyjs::removeClass(id = "generate_pdf_report", class = "disabled")
+          showNotification(HTML("Looks like something went wrong. Please try again.<br>If the problem persists please contact Service Desk."), duration = NULL, type = "error")
+        }
       }
     })
 
@@ -476,13 +516,56 @@ server <- function(input, output, session) {
         log_message(paste('generate_pdf_report', savepath))
 
         shinyjs::removeClass(id = "report_generating_gif", class = "hidden")
+        shinyjs::addClass(id = "generate_csv_report", class = "disabled")
         shinyjs::addClass(id = "generate_pdf_report", class = "disabled")
-
-        generate_pdf_report(input, trials_subset_filtered(), savepath)
-
-        shinyjs::addClass(id = "report_generating_gif", class = "hidden")
-        shinyjs::removeClass(id = "generate_pdf_report", class = "disabled")
-        showNotification("PDF report complete", duration = 5, type = "message")
+        
+        # order_column <- input$trials_order$column
+        # order_column_direction <- input$trials_order$direction
+        order_column <- 4 # hard code by increasing completion date (ignore table sorting)
+        order_column_direction <- "asc" # hard code by increasing completion date (ignore table sorting)
+        
+        if (order_column != "") {
+          order_column_name <- names(trials_subset_filtered())[order_column]
+          order_column <- trials_subset_filtered()[[order_column_name]]
+          if (order_column_direction == "asc") {
+            sorted_columns <- trials_subset_filtered()[order(order_column, decreasing = FALSE), ]
+          } else if (order_column_direction == "desc") {
+            sorted_columns <- trials_subset_filtered()[order(order_column, decreasing = TRUE), ]
+          }
+          
+        } else {
+          sorted_columns <- trials_subset_filtered()
+        }
+        rownames(sorted_columns) <- 1:nrow(sorted_columns) # required otherwise Rmd pdf creationg fails (not sure why?)
+        
+        trycatch_output <- tryCatch(
+          expr = {
+            generate_pdf_report(input, sorted_columns, savepath)
+            TRUE
+          },
+          warning = function(e) {
+            log_message(toString(e))
+            FALSE
+          },
+          error = function(e) {
+            log_message(toString(e))
+            FALSE
+          }
+        )
+        
+        print(trycatch_output)
+        
+        if (trycatch_output) {
+          shinyjs::addClass(id = "report_generating_gif", class = "hidden")
+          shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
+          shinyjs::removeClass(id = "generate_pdf_report", class = "disabled")
+          showNotification("PDF report complete", duration = 5, type = "message")
+        } else {
+          shinyjs::addClass(id = "report_generating_gif", class = "hidden")
+          shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
+          shinyjs::removeClass(id = "generate_pdf_report", class = "disabled")
+          showNotification(HTML("Looks like something went wrong. Please try again.<br>If the problem persists please contact Service Desk."), duration = NULL, type = "error")
+        }
       }
     })
 
@@ -522,8 +605,24 @@ server <- function(input, output, session) {
                                             }
                                           }
                                         }"
-                    )
                     ),
+                    headerCallback = JS("function(thead, data, start, end, display){
+                                          Shiny.setInputValue('trials_display_order', display)
+                                        }"
+                    )
+      ),
+      callback =  JS("table.on('order.dt', function () {
+                    // This will show: 'Ordering on column 1 (asc)', for example
+                    var order = table.order();
+                    if (order.length > 0) {
+                      //console.log('Ordering on column '+order[0][0]+' ('+order[0][1]+')' )
+                      Shiny.setInputValue('trials_order', {column: order[0][0], direction: order[0][1]});
+                    } else {
+                      //console.log('Empty ordering')
+                      Shiny.setInputValue('trials_order', {column: '', direction: ''});
+                    }
+                  })"
+      ),
       selection = 'single',
       class = "display nowrap",
       server = TRUE # allows reloading of data.
@@ -534,6 +633,26 @@ server <- function(input, output, session) {
     observeEvent(trials_subset_filtered(), {
       replaceData(proxy, trials_subset_filtered(), resetPaging = FALSE, clearSelection = FALSE) # update the data when trials_subset_filtered() is edited
     })
+    
+    # observeEvent(input$trials_order, {
+    #   print(input$trials_order)
+    #   
+    #   if (!(input$trials_order$column == "")) {
+    #     order_column_name <- names(trials_subset_filtered())[input$trials_order$column]
+    #     order_column <- trials_subset_filtered()[[order_column_name]]
+    #     print(order_column_name)
+    #     if (input$trials_order$direction == "asc") {
+    #       sorted_columns <- trials_subset_filtered()[order(order_column, decreasing = FALSE), ]
+    #     } else {
+    #       sorted_columns <- trials_subset_filtered()[order(order_column, decreasing = TRUE), ]
+    #     }
+    #     
+    #     print(sorted_columns$trial_id[1:10])
+    #     print(nrow(sorted_columns))
+    #     print(nrow(trials_subset_filtered()))
+    # 
+    #   }
+    # })
 
     # shinyjs::runjs(
     #   "console.log(\"RUNNING JS... \");
@@ -549,6 +668,17 @@ server <- function(input, output, session) {
     #     }
     #   } )"
     # )
+    
+    shinyjs::runjs(
+      "console.log(\"RUNNING JS... \");
+      console.log($('#trials'));
+      //console.log($('#trials').data().datatable.order())
+      $('#trials').data().datatable.on('order.dt', function () {
+        // This will show: 'Ordering on column 1 (asc)', for example
+        var order = $('#trials').data().datatable.order();
+        console.log('Ordering on column '+order[0][0]+' ('+order[0][1]+')' )
+      })"
+    )
 
     currentRow <- reactiveVal(NULL)
     modal_fade <- reactiveVal(TRUE)
@@ -621,6 +751,7 @@ server <- function(input, output, session) {
     observeEvent(input$modal_prev, {
       # edge case doesn't appear when moving back
       currentRow(currentRow() - 1)
+      if (currentRow() < 1) {currentRow(1)}
       review_display_edge_case(FALSE) # edge case doesn't persist after moving
       ignore_row_selected(TRUE) # prevents regeneration of modal when moving selected row
       selectRows(proxy, input$trials_rows_all[[currentRow()]]) # moves selected row on datatable
@@ -636,6 +767,7 @@ server <- function(input, output, session) {
         currentRow(temp_row)
       } else {
         currentRow(currentRow() + 1)
+        if (currentRow() >= nrow(trials_filtered())) {currentRow(nrow(trials_filtered()))}
       }
       review_display_edge_case(FALSE) # edge case doesn't persist after moving
       ignore_row_selected(TRUE) # prevents regeneration of modal when moving selected row
