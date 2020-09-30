@@ -457,6 +457,7 @@ server <- function(input, output, session) {
 
         shinyjs::removeClass(id = "report_generating_gif", class = "hidden")
         shinyjs::addClass(id = "generate_csv_report", class = "disabled")
+        shinyjs::addClass(id = "generate_pdf_report", class = "disabled")
         
         # order_column <- input$trials_order$column
         # order_column_direction <- input$trials_order$direction
@@ -477,13 +478,32 @@ server <- function(input, output, session) {
         }
         
         rownames(sorted_columns) <- 1:nrow(sorted_columns) # required otherwise Rmd pdf creationg fails (not sure why?) here as well for redundancy
-
-        generate_csv_report(input, sorted_columns, savepath)
-
-        shinyjs::addClass(id = "report_generating_gif", class = "hidden")
-        shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
-
-        showNotification("CSV report complete", duration = 5, type = "message")
+        trycatch_output <- tryCatch(
+          expr = {
+            generate_csv_report(input, sorted_columns, savepath)
+            TRUE
+          },
+          warning = function(e) {
+            log_message(toString(e))
+            FALSE
+          },
+          error = function(e) {
+            log_message(toString(e))
+            FALSE
+          }
+        )
+        
+        if (trycatch_output) {
+          shinyjs::addClass(id = "report_generating_gif", class = "hidden")
+          shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
+          shinyjs::removeClass(id = "generate_pdf_report", class = "disabled")
+          showNotification("CSV report complete", duration = 5, type = "message")
+        } else {
+          shinyjs::addClass(id = "report_generating_gif", class = "hidden")
+          shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
+          shinyjs::removeClass(id = "generate_pdf_report", class = "disabled")
+          showNotification(HTML("Looks like something went wrong. Please try again.<br>If the problem persists please contact Service Desk."), duration = NULL, type = "error")
+        }
       }
     })
 
@@ -496,6 +516,7 @@ server <- function(input, output, session) {
         log_message(paste('generate_pdf_report', savepath))
 
         shinyjs::removeClass(id = "report_generating_gif", class = "hidden")
+        shinyjs::addClass(id = "generate_csv_report", class = "disabled")
         shinyjs::addClass(id = "generate_pdf_report", class = "disabled")
         
         # order_column <- input$trials_order$column
@@ -516,12 +537,35 @@ server <- function(input, output, session) {
           sorted_columns <- trials_subset_filtered()
         }
         rownames(sorted_columns) <- 1:nrow(sorted_columns) # required otherwise Rmd pdf creationg fails (not sure why?)
-
-        generate_pdf_report(input, sorted_columns, savepath)
-
-        shinyjs::addClass(id = "report_generating_gif", class = "hidden")
-        shinyjs::removeClass(id = "generate_pdf_report", class = "disabled")
-        showNotification("PDF report complete", duration = 5, type = "message")
+        
+        trycatch_output <- tryCatch(
+          expr = {
+            generate_pdf_report(input, sorted_columns, savepath)
+            TRUE
+          },
+          warning = function(e) {
+            log_message(toString(e))
+            FALSE
+          },
+          error = function(e) {
+            log_message(toString(e))
+            FALSE
+          }
+        )
+        
+        print(trycatch_output)
+        
+        if (trycatch_output) {
+          shinyjs::addClass(id = "report_generating_gif", class = "hidden")
+          shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
+          shinyjs::removeClass(id = "generate_pdf_report", class = "disabled")
+          showNotification("CSV report complete", duration = 5, type = "message")
+        } else {
+          shinyjs::addClass(id = "report_generating_gif", class = "hidden")
+          shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
+          shinyjs::removeClass(id = "generate_pdf_report", class = "disabled")
+          showNotification(HTML("Looks like something went wrong. Please try again.<br>If the problem persists please contact Service Desk."), duration = NULL, type = "error")
+        }
       }
     })
 
