@@ -751,6 +751,7 @@ server <- function(input, output, session) {
     observeEvent(input$modal_prev, {
       # edge case doesn't appear when moving back
       currentRow(currentRow() - 1)
+      if (currentRow() < 1) {currentRow(1)}
       review_display_edge_case(FALSE) # edge case doesn't persist after moving
       ignore_row_selected(TRUE) # prevents regeneration of modal when moving selected row
       selectRows(proxy, input$trials_rows_all[[currentRow()]]) # moves selected row on datatable
@@ -766,6 +767,7 @@ server <- function(input, output, session) {
         currentRow(temp_row)
       } else {
         currentRow(currentRow() + 1)
+        if (currentRow() >= nrow(trials_filtered())) {currentRow(nrow(trials_filtered()))}
       }
       review_display_edge_case(FALSE) # edge case doesn't persist after moving
       ignore_row_selected(TRUE) # prevents regeneration of modal when moving selected row
