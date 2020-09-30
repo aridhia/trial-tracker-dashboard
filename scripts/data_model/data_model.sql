@@ -100,15 +100,15 @@ CREATE TABLE IF NOT EXISTS trk_reviews (
 
 CREATE VIEW trials_view AS 
 SELECT DISTINCT ON (trial_id) trk_trials.* FROM trk_trials
-INNER JOIN (SELECT trial_id, max(created_at) max_date              
-   FROM trk_trials GROUP BY trial_id) t2
-ON trk_trials.trial_id = t2.trial_id AND trk_trials.created_at = t2.max_date;
+INNER JOIN 
+    (SELECT max(created_at) max_date FROM trk_trials) t2
+ON trk_trials.created_at = t2.max_date;
 
 CREATE VIEW review_view AS 
 select trk_reviews.trial_id, flag, user_submitted, rating, note, created_at
 from trk_reviews
-inner join
-    (select trial_id, max(created_at) max_date FROM trk_reviews GROUP BY trial_id) t2
+INNER JOIN
+    (SELECT trial_id, max(created_at) max_date FROM trk_reviews GROUP BY trial_id) t2
 ON trk_reviews.trial_id = t2.trial_id AND trk_reviews.created_at = t2.max_date;
 
 CREATE VIEW combined_view AS 
