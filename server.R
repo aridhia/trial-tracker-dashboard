@@ -18,7 +18,7 @@ server <- function(input, output, session) {
   # Test the connection - 
   shinyjs::addClass(id="error_message", class="hidden")
   # 
-  # Sys.setenv(PGHOST = "10.0.0.4") # ensures WS can connect to database even if DNS fails
+  Sys.setenv(PGHOST = "10.0.0.4") # ensures WS can connect to database even if DNS fails
   if (!dbCanConnect(RPostgres::Postgres(), dbname = Sys.getenv("PGDATABASE"), 
                                           host = Sys.getenv("PGHOST"), 
                                           port = Sys.getenv("PORT"), 
@@ -559,7 +559,7 @@ server <- function(input, output, session) {
           shinyjs::addClass(id = "report_generating_gif", class = "hidden")
           shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
           shinyjs::removeClass(id = "generate_pdf_report", class = "disabled")
-          showNotification("CSV report complete", duration = 5, type = "message")
+          showNotification("PDF report complete", duration = 5, type = "message")
         } else {
           shinyjs::addClass(id = "report_generating_gif", class = "hidden")
           shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
