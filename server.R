@@ -483,10 +483,10 @@ server <- function(input, output, session) {
             generate_csv_report(input, sorted_columns, savepath)
             TRUE
           },
-          warning = function(e) {
-            log_message(toString(e))
-            FALSE
-          },
+          # warning = function(e) {
+          #   log_message(toString(e))
+          #   FALSE
+          # },
           error = function(e) {
             log_message(toString(e))
             FALSE
@@ -543,10 +543,10 @@ server <- function(input, output, session) {
             generate_pdf_report(input, sorted_columns, savepath)
             TRUE
           },
-          warning = function(e) {
-            log_message(toString(e))
-            FALSE
-          },
+          # warning = function(e) {
+          #   log_message(toString(e))
+          #   FALSE
+          # },
           error = function(e) {
             log_message(toString(e))
             FALSE

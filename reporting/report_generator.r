@@ -159,8 +159,10 @@ generate_csv_report <- function(input, trials, savepath) {
   write.table(build_filter(input), file = savepath, append = FALSE, sep = ",", row.names = FALSE)
   # write a blank line
   write("", file = savepath, append = TRUE)
+  # write column headers without it throwing a warning
+  write(paste0(names(trials), collapse=","), file = savepath, append = TRUE)
   # write the table itself
-  write.table(trials, file = savepath, append = TRUE, sep = ",", row.names = FALSE)
+  write.table(trials, file = savepath, append = TRUE, sep = ",", row.names = FALSE, col.names=FALSE)
 
   log_message("CSV Report - complete")
 }
