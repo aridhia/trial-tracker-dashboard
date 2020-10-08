@@ -198,7 +198,7 @@ server <- function(input, output, session) {
         hr(),
         checkboxGroupInput("flagged_trials", label = "Display trials with flag:", inline = FALSE, choices = list("Accepted" = TRUE, "Rejected" = FALSE, "Unreviewed" = "NA"), selected = c(TRUE, FALSE, "NA")),
         hr(),
-        sliderInput("expected_enrollment", "Expected No. of Patients Size at Least:", min = 0, max = 4000, step = 100, value = 80),
+        sliderInput("expected_enrollment", "Expected No. of Patients Size at Least:", min = 0, max = 4000, step = 10, value = 80),
         checkboxInput("enrollment_na_show", label = "Display trials without Expected No. of Patients", value = FALSE),
         hr(),
         selectInput("study_design", "Study Design:", choices = append(study_design_levels, "All", after = 0), selected = "All"),
