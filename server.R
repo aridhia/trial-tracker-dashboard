@@ -198,7 +198,7 @@ server <- function(input, output, session) {
         hr(),
         checkboxGroupInput("flagged_trials", label = "Display trials with flag:", inline = FALSE, choices = list("Accepted" = TRUE, "Rejected" = FALSE, "Unreviewed" = "NA"), selected = c(TRUE, FALSE, "NA")),
         hr(),
-        numericInput("expected_enrollment", "Expected No. of Patients Size at Least:", min = 0, max = 4000, value = 80),
+        numericInput("expected_enrollment", "Expected No. of Patients Size at Least:", min = 0, value = 80),
         checkboxInput("enrollment_na_show", label = "Display trials without Expected No. of Patients", value = FALSE),
         hr(),
         selectInput("study_design", "Study Design:", choices = append(study_design_levels, "All", after = 0), selected = "All"),
@@ -214,6 +214,12 @@ server <- function(input, output, session) {
         radioButtons("outcome_andor", label = "Outcome Filter Logic", choices = c("AND", "OR"), selected = "AND", inline = TRUE),
         hr()
       )
+    })
+    
+    observeEvent(input$expected_enrollment, {
+      if (!is.na(input$expected_enrollment) && input$expected_enrollment < 0) {
+        updateNumericInput(session, "expected_enrollment", value = 0)
+      }
     })
 
     ## trails / trials_subset now need to be reactive to respond to data changing
