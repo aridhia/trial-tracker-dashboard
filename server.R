@@ -198,7 +198,7 @@ server <- function(input, output, session) {
         hr(),
         checkboxGroupInput("flagged_trials", label = "Display trials with flag:", inline = FALSE, choices = list("Accepted" = TRUE, "Rejected" = FALSE, "Unreviewed" = "NA"), selected = c(TRUE, FALSE, "NA")),
         hr(),
-        sliderInput("expected_enrollment", "Expected No. of Patients Size at Least:", min = 0, max = 4000, step = 10, value = 80),
+        numericInput("expected_enrollment", "Expected No. of Patients Size at Least:", min = 0, max = 4000, value = 80),
         checkboxInput("enrollment_na_show", label = "Display trials without Expected No. of Patients", value = FALSE),
         hr(),
         selectInput("study_design", "Study Design:", choices = append(study_design_levels, "All", after = 0), selected = "All"),
@@ -871,6 +871,8 @@ server <- function(input, output, session) {
       fig <- fig %>% layout(title = "No. of Trials by Outcome (Top 10)",
                               xaxis = list(title = "No. of Trials"),
                               yaxis = list(title = "Outcomes"))
+      
+      fig <- fig %>% config(modeBarButtonsToRemove = c('toImage', 'sendDataToCloud'))
     })
 
     output$noOfTreatments <- renderPlotly({
@@ -887,6 +889,8 @@ server <- function(input, output, session) {
       fig <- fig %>% layout(title = "No. of Trials by Treatment (Top 10)",
                               xaxis = list(title = "No. of Trials"),
                               yaxis = list(title = "Treatments"))
+      
+      fig <- fig %>% config(modeBarButtonsToRemove = c('toImage', 'sendDataToCloud'))
     })
 
 
@@ -910,6 +914,8 @@ server <- function(input, output, session) {
       fig <- fig %>% layout(title = "No. of Trials by Months until Completion",
                             xaxis = list(title = "Months"),
                             yaxis = list(title = "No. of Trials"))
+      
+      fig <- fig %>% config(modeBarButtonsToRemove = c('toImage', 'sendDataToCloud'))
 
       return(fig)
     })
@@ -940,7 +946,7 @@ server <- function(input, output, session) {
 
     observeEvent(input$noOfMonths_click, {
       updateCheckboxGroupInput(session, "flagged_trials", selected = c(TRUE, FALSE, "NA"))
-      updateSliderInput(session, "expected_enrollment", value = 80)
+      updateNumericInput(session, "expected_enrollment", value = 80)
       updateCheckboxInput(session, "enrollment_na_show", value = FALSE)
       updateSelectInput(session, "study_design", selected = "All")
       updateSelectInput(session, "trial_phase", selected = character(0))
@@ -973,7 +979,7 @@ server <- function(input, output, session) {
 
     observeEvent(input$noOfTreatments_click, {
       updateCheckboxGroupInput(session, "flagged_trials", selected = c(TRUE, FALSE, "NA"))
-      updateSliderInput(session, "expected_enrollment", value = 80)
+      updateNumericInput(session, "expected_enrollment", value = 80)
       updateCheckboxInput(session, "enrollment_na_show", value = FALSE)
       updateSelectInput(session, "study_design", selected = "All")
       updateSelectInput(session, "trial_phase", selected = character(0))
@@ -1004,7 +1010,7 @@ server <- function(input, output, session) {
 
     observeEvent(input$noOfOutcomes_click, {
       updateCheckboxGroupInput(session, "flagged_trials", selected = c(TRUE, FALSE, "NA"))
-      updateSliderInput(session, "expected_enrollment", value = 80)
+      updateNumericInput(session, "expected_enrollment", value = 80)
       updateCheckboxInput(session, "enrollment_na_show", value = FALSE)
       updateSelectInput(session, "study_design", selected = "All")
       updateSelectInput(session, "trial_phase", selected = character(0))
