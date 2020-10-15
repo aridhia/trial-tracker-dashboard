@@ -17,12 +17,12 @@ server <- function(input, output, session) {
   # -------------------------------------------------------------------------------------------------------
   # Test the connection -
   shinyjs::addClass(id="error_message", class="hidden")
-  #
+
   Sys.setenv(PGHOST = "10.0.0.4") # ensures WS can connect to database even if DNS fails
-  if (!dbCanConnect(RPostgres::Postgres(), dbname = Sys.getenv("PGDATABASE"),
-                                          host = Sys.getenv("PGHOST"),
-                                          port = Sys.getenv("PORT"),
-                                          user = Sys.getenv("PGUSER"),
+  if (!dbCanConnect(RPostgres::Postgres(), dbname = Sys.getenv("PGDATABASE"), 
+                                          host = Sys.getenv("PGHOST"), 
+                                          port = Sys.getenv("PORT"), 
+                                          user = Sys.getenv("PGUSER"), 
                                           password = Sys.getenv("PGPASSWORD"))) {
     # Sys.getenv("PGHOST") maybe blank if default but it's informative anyway
     error <- paste0('Failed to connect to database: (', Sys.getenv("PGHOST"), ')')
@@ -199,7 +199,9 @@ server <- function(input, output, session) {
         checkboxGroupInput("flagged_trials", label = "Display trials with flag:", inline = FALSE, choices = list("Accepted" = TRUE, "Rejected" = FALSE, "Unreviewed" = "NA"), selected = c(TRUE, FALSE, "NA")),
         hr(),
         sliderInput("expected_enrollment", "Expected No. of Patients Size at Least:", min = 0, max = 4000, step = 10, value = 80),
-        numericInput("textEnrollmentInput", label="", value = 80, width = NULL),
+        div(style = "margin-top: -35px;", # removes gap between slider and numeric input
+          numericInput("numericEnrollmentInput", label="", value = 80, width = NULL)
+        ),
         checkboxInput("enrollment_na_show", label = "Display trials without Expected No. of Patients", value = FALSE),
         hr(),
         selectInput("study_design", "Study Design:", choices = append(study_design_levels, "All", after = 0), selected = "All"),
@@ -217,40 +219,21 @@ server <- function(input, output, session) {
       )
     })
 
-    ## Keep minium enrollment slider and input in sync
-    observeEvent(input$textEnrollmentInput,{
-      print("Test")
-      if((as.numeric(input$textEnrollmentInput) != input$expected_enrollment) & input$textEnrollmentInput != "" &  input$expected_enrollment != "")
-      {
-        print("Test 1")
-        updateSliderInput(
-          session = session,
-          inputId = 'expected_enrollment',
-          value = input$textEnrollmentInput
-        ) # updateSliderInput
-      } else {
-        if (input$textEnrollmentInput == "") {
-          updateSliderInput(session = session,
-                            inputId = 'expected_enrollment',
-                            value = 0)
-
-        }
-      }
-
-
+    ## Keep minimum enrollment slider and input in sync
+    observeEvent(input$numericEnrollmentInput,{
+      updateSliderInput(
+        session = session,
+        inputId = 'expected_enrollment',
+        value = input$numericEnrollmentInput
+      )
     })
 
     observeEvent(input$expected_enrollment,{
-      if((as.numeric(input$textEnrollmentInput) != input$expected_enrollment) & input$expected_enrollment != "" & input$textEnrollmentInput != "")
-      {
-        updateTextInput(
-          session = session,
-          inputId = 'textEnrollmentInput',
-          value = input$expected_enrollment
-        )
-
-      }#
-
+      updateNumericInput(
+        session = session,
+        inputId = 'numericEnrollmentInput',
+        value = input$expected_enrollment
+      )
     })
 
     ## trails / trials_subset now need to be reactive to respond to data changing
@@ -908,6 +891,9 @@ server <- function(input, output, session) {
       fig <- fig %>% layout(title = "No. of Trials by Outcome (Top 10)",
                               xaxis = list(title = "No. of Trials"),
                               yaxis = list(title = "Outcomes"))
+      
+      # fig <- fig %>% config(displayModeBar = F)
+      fig <- fig %>% config(modeBarButtonsToRemove = c('toImage', 'sendDataToCloud'))
     })
 
     output$noOfTreatments <- renderPlotly({
@@ -924,6 +910,8 @@ server <- function(input, output, session) {
       fig <- fig %>% layout(title = "No. of Trials by Treatment (Top 10)",
                               xaxis = list(title = "No. of Trials"),
                               yaxis = list(title = "Treatments"))
+      
+      fig <- fig %>% config(modeBarButtonsToRemove = c('toImage', 'sendDataToCloud'))
     })
 
 
@@ -947,7 +935,8 @@ server <- function(input, output, session) {
       fig <- fig %>% layout(title = "No. of Trials by Months until Completion",
                             xaxis = list(title = "Months"),
                             yaxis = list(title = "No. of Trials"))
-
+      
+      fig <- fig %>% config(modeBarButtonsToRemove = c('toImage', 'sendDataToCloud'))
       return(fig)
     })
 
