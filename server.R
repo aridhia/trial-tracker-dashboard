@@ -18,7 +18,7 @@ server <- function(input, output, session) {
   # Test the connection -
   shinyjs::addClass(id="error_message", class="hidden")
   #
-  # Sys.setenv(PGHOST = "10.0.0.4") # ensures WS can connect to database even if DNS fails
+  Sys.setenv(PGHOST = "10.0.0.4") # ensures WS can connect to database even if DNS fails
   if (!dbCanConnect(RPostgres::Postgres(), dbname = Sys.getenv("PGDATABASE"),
                                           host = Sys.getenv("PGHOST"),
                                           port = Sys.getenv("PORT"),
@@ -902,11 +902,9 @@ server <- function(input, output, session) {
 
     output$noOfMonths <- renderPlotly({
       trials$no_of_months_until_readout <- (interval((Sys.Date()), (trials$date_primary_completion)) %/% months(1))
-
       trials_date <- trials %>% filter(date_primary_completion >= Sys.Date())
       no_of_months <- trials_date %>% filter(no_of_months_until_readout <= 11 & no_of_months_until_readout > -1)
       no_of_months$no_of_months_until_readout <- no_of_months$no_of_months_until_readout + 1
-      write.csv(no_of_months %>% select(trial_id, date_primary_completion, no_of_months_until_readout),"./summary_months.csv", row.names = FALSE)
       counts <- table(readout_months = no_of_months$no_of_months_until_readout)
       counts_dataframe <- as.data.frame(counts)
 
