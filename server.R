@@ -15,18 +15,18 @@ server <- function(input, output, session) {
   # -------------------------------------------------------------------------------------------------------
   # Fetch data from the database
   # -------------------------------------------------------------------------------------------------------
-  # Test the connection - 
+  # Test the connection -
   shinyjs::addClass(id="error_message", class="hidden")
-  # 
-  Sys.setenv(PGHOST = "10.0.0.4") # ensures WS can connect to database even if DNS fails
-  if (!dbCanConnect(RPostgres::Postgres(), dbname = Sys.getenv("PGDATABASE"), 
-                                          host = Sys.getenv("PGHOST"), 
-                                          port = Sys.getenv("PORT"), 
-                                          user = Sys.getenv("PGUSER"), 
+  #
+  # Sys.setenv(PGHOST = "10.0.0.4") # ensures WS can connect to database even if DNS fails
+  if (!dbCanConnect(RPostgres::Postgres(), dbname = Sys.getenv("PGDATABASE"),
+                                          host = Sys.getenv("PGHOST"),
+                                          port = Sys.getenv("PORT"),
+                                          user = Sys.getenv("PGUSER"),
                                           password = Sys.getenv("PGPASSWORD"))) {
-    # Sys.getenv("PGHOST") maybe blank if default but it's informative anyway                    
-    error <- paste0('Failed to connect to database: (', Sys.getenv("PGHOST"), ')')                     
-  
+    # Sys.getenv("PGHOST") maybe blank if default but it's informative anyway
+    error <- paste0('Failed to connect to database: (', Sys.getenv("PGHOST"), ')')
+
     # Fatal error: Log, notify and display an error
     log_message(error)
     showNotification(error, duration = 15, type = "error")
@@ -34,14 +34,14 @@ server <- function(input, output, session) {
     shinyjs::addClass(id = "loading_screen", class = "hidden")
     shinyjs::removeClass(id="error_message", class="hidden")
   } else {
-    con <- dbConnect(RPostgres::Postgres(), dbname = Sys.getenv("PGDATABASE"), 
-                                            host = Sys.getenv("PGHOST"), 
-                                            port = Sys.getenv("PORT"), 
-                                            user = Sys.getenv("PGUSER"), 
+    con <- dbConnect(RPostgres::Postgres(), dbname = Sys.getenv("PGDATABASE"),
+                                            host = Sys.getenv("PGHOST"),
+                                            port = Sys.getenv("PORT"),
+                                            user = Sys.getenv("PGUSER"),
                                             password = Sys.getenv("PGPASSWORD"))
 
     log_message(paste0('Connected to database: (', Sys.getenv("PGHOST"), ')'))
-  
+
     trials_original = RPostgres::dbGetQuery(con, "SELECT * FROM combined_view;")
 
     trials <- trials_original %>% select(-c(state_name, state_lon, state_lat, country_name, iso3_code))
@@ -51,7 +51,7 @@ server <- function(input, output, session) {
     log_message(paste0('Loaded ', nrow(trials_original), ' in trials_original'))
     log_message(paste0('Unique trials: ', nrow(trials)))
 
-    trials_subset <- trials %>% 
+    trials_subset <- trials %>%
                         select(trial_id,
                             scientific_title,
                             institution,
@@ -73,26 +73,26 @@ server <- function(input, output, session) {
     today <- Sys.Date()
     today_plus_one_month <- Sys.Date() %m+% months(1)
     treatments <- trials_subset$corrected_treatment_name %>%
-                      strsplit(", ") %>% 
+                      strsplit(", ") %>%
                       reduce(c) %>%
-                      strsplit(" + ", fixed = TRUE) %>% 
+                      strsplit(" + ", fixed = TRUE) %>%
                       reduce(c) %>%
                       trimws() %>%
-                      unique() %>% 
+                      unique() %>%
                       sort()
 
     outcomes <- trials_subset$outcome %>%
-                  strsplit(", ") %>% 
+                  strsplit(", ") %>%
                   reduce(c) %>%
                   trimws() %>%
-                  unique() %>% 
+                  unique() %>%
                   sort()
 
     outcome_filter_function <- function(entry, outcomes, logic = "AND") {
       if (is.null(outcomes)) { return(TRUE) }
 
       entry_split <- entry %>%
-                      strsplit(", ") %>% 
+                      strsplit(", ") %>%
                       reduce(c)
 
       if (logic == "AND") {
@@ -137,11 +137,11 @@ server <- function(input, output, session) {
 
     get_count_of_treatments <- function() {
 
-      treatments <- trials_subset %>% 
+      treatments <- trials_subset %>%
                       separate_rows(corrected_treatment_name, sep = ", ") %>%
                       separate_rows(corrected_treatment_name, sep = " \\+ ") %>%
                       group_by(trial_id, corrected_treatment_name)
-                      
+
       treatments <- summarise(treatments, count = n())
       treatments <- treatments$corrected_treatment_name
 
@@ -154,7 +154,7 @@ server <- function(input, output, session) {
 
     get_count_of_outcomes <- function() {
 
-      outcomes <- trials_subset %>% 
+      outcomes <- trials_subset %>%
                     separate_rows(outcome, sep = ", ") %>%
                     separate_rows(outcome, sep = " \\+ ") %>%
                     group_by(trial_id, outcome)
@@ -215,7 +215,7 @@ server <- function(input, output, session) {
         hr()
       )
     })
-    
+
     observeEvent(input$expected_enrollment, {
       if (!is.na(input$expected_enrollment) && input$expected_enrollment < 0) {
         updateNumericInput(session, "expected_enrollment", value = 0)
@@ -464,12 +464,12 @@ server <- function(input, output, session) {
         shinyjs::removeClass(id = "report_generating_gif", class = "hidden")
         shinyjs::addClass(id = "generate_csv_report", class = "disabled")
         shinyjs::addClass(id = "generate_pdf_report", class = "disabled")
-        
+
         # order_column <- input$trials_order$column
         # order_column_direction <- input$trials_order$direction
         order_column <- 4 # hard code by increasing completion date (ignore table sorting)
         order_column_direction <- "asc" # hard code by increasing completion date (ignore table sorting)
-        
+
         if (order_column != "") {
           order_column_name <- names(trials_subset_filtered())[order_column]
           order_column <- trials_subset_filtered()[[order_column_name]]
@@ -478,11 +478,11 @@ server <- function(input, output, session) {
           } else if (order_column_direction == "desc") {
             sorted_columns <- trials_subset_filtered()[order(order_column, decreasing = TRUE), ]
           }
-          
+
         } else {
           sorted_columns <- trials_subset_filtered()
         }
-        
+
         rownames(sorted_columns) <- 1:nrow(sorted_columns) # required otherwise Rmd pdf creationg fails (not sure why?) here as well for redundancy
         trycatch_output <- tryCatch(
           expr = {
@@ -498,7 +498,7 @@ server <- function(input, output, session) {
             FALSE
           }
         )
-        
+
         if (trycatch_output) {
           shinyjs::addClass(id = "report_generating_gif", class = "hidden")
           shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
@@ -524,12 +524,12 @@ server <- function(input, output, session) {
         shinyjs::removeClass(id = "report_generating_gif", class = "hidden")
         shinyjs::addClass(id = "generate_csv_report", class = "disabled")
         shinyjs::addClass(id = "generate_pdf_report", class = "disabled")
-        
+
         # order_column <- input$trials_order$column
         # order_column_direction <- input$trials_order$direction
         order_column <- 4 # hard code by increasing completion date (ignore table sorting)
         order_column_direction <- "asc" # hard code by increasing completion date (ignore table sorting)
-        
+
         if (order_column != "") {
           order_column_name <- names(trials_subset_filtered())[order_column]
           order_column <- trials_subset_filtered()[[order_column_name]]
@@ -538,12 +538,12 @@ server <- function(input, output, session) {
           } else if (order_column_direction == "desc") {
             sorted_columns <- trials_subset_filtered()[order(order_column, decreasing = TRUE), ]
           }
-          
+
         } else {
           sorted_columns <- trials_subset_filtered()
         }
         rownames(sorted_columns) <- 1:nrow(sorted_columns) # required otherwise Rmd pdf creationg fails (not sure why?)
-        
+
         trycatch_output <- tryCatch(
           expr = {
             generate_pdf_report(input, sorted_columns, savepath)
@@ -558,9 +558,9 @@ server <- function(input, output, session) {
             FALSE
           }
         )
-        
+
         print(trycatch_output)
-        
+
         if (trycatch_output) {
           shinyjs::addClass(id = "report_generating_gif", class = "hidden")
           shinyjs::removeClass(id = "generate_csv_report", class = "disabled")
@@ -639,10 +639,10 @@ server <- function(input, output, session) {
     observeEvent(trials_subset_filtered(), {
       replaceData(proxy, trials_subset_filtered(), resetPaging = FALSE, clearSelection = FALSE) # update the data when trials_subset_filtered() is edited
     })
-    
+
     # observeEvent(input$trials_order, {
     #   print(input$trials_order)
-    #   
+    #
     #   if (!(input$trials_order$column == "")) {
     #     order_column_name <- names(trials_subset_filtered())[input$trials_order$column]
     #     order_column <- trials_subset_filtered()[[order_column_name]]
@@ -652,11 +652,11 @@ server <- function(input, output, session) {
     #     } else {
     #       sorted_columns <- trials_subset_filtered()[order(order_column, decreasing = TRUE), ]
     #     }
-    #     
+    #
     #     print(sorted_columns$trial_id[1:10])
     #     print(nrow(sorted_columns))
     #     print(nrow(trials_subset_filtered()))
-    # 
+    #
     #   }
     # })
 
@@ -674,7 +674,7 @@ server <- function(input, output, session) {
     #     }
     #   } )"
     # )
-    
+
     shinyjs::runjs(
       "console.log(\"RUNNING JS... \");
       console.log($('#trials'));
@@ -803,8 +803,8 @@ server <- function(input, output, session) {
         log_message(paste0('Review added for trial: ', trial$trial_id))
 
         # edge case where newly create review should is not included in filter. upsets all of the row counting.
-        if (!(input$review_selection %in% input$flagged_trials)) { 
-          review_display_edge_case(TRUE) 
+        if (!(input$review_selection %in% input$flagged_trials)) {
+          review_display_edge_case(TRUE)
         }
 
         trials_new <- trials_reactive()
@@ -877,7 +877,7 @@ server <- function(input, output, session) {
       fig <- fig %>% layout(title = "No. of Trials by Outcome (Top 10)",
                               xaxis = list(title = "No. of Trials"),
                               yaxis = list(title = "Outcomes"))
-      
+
       fig <- fig %>% config(modeBarButtonsToRemove = c('toImage', 'sendDataToCloud'))
     })
 
@@ -895,16 +895,18 @@ server <- function(input, output, session) {
       fig <- fig %>% layout(title = "No. of Trials by Treatment (Top 10)",
                               xaxis = list(title = "No. of Trials"),
                               yaxis = list(title = "Treatments"))
-      
+
       fig <- fig %>% config(modeBarButtonsToRemove = c('toImage', 'sendDataToCloud'))
     })
 
 
     output$noOfMonths <- renderPlotly({
       trials$no_of_months_until_readout <- (interval((Sys.Date()), (trials$date_primary_completion)) %/% months(1))
+
       trials_date <- trials %>% filter(date_primary_completion >= Sys.Date())
       no_of_months <- trials_date %>% filter(no_of_months_until_readout <= 11 & no_of_months_until_readout > -1)
       no_of_months$no_of_months_until_readout <- no_of_months$no_of_months_until_readout + 1
+      write.csv(no_of_months %>% select(trial_id, date_primary_completion, no_of_months_until_readout),"./summary_months.csv", row.names = FALSE)
       counts <- table(readout_months = no_of_months$no_of_months_until_readout)
       counts_dataframe <- as.data.frame(counts)
 
@@ -920,7 +922,7 @@ server <- function(input, output, session) {
       fig <- fig %>% layout(title = "No. of Trials by Months until Completion",
                             xaxis = list(title = "Months"),
                             yaxis = list(title = "No. of Trials"))
-      
+
       fig <- fig %>% config(modeBarButtonsToRemove = c('toImage', 'sendDataToCloud'))
 
       return(fig)
@@ -956,7 +958,9 @@ server <- function(input, output, session) {
       updateCheckboxInput(session, "enrollment_na_show", value = FALSE)
       updateSelectInput(session, "study_design", selected = "All")
       updateSelectInput(session, "trial_phase", selected = character(0))
-      updateDateRangeInput(session, "completion_date", start = Sys.Date() %m+% months(as.numeric(input$noOfMonths_click) - 1), end = Sys.Date() %m+% months(as.numeric(input$noOfMonths_click)))
+      end_date <- Sys.Date() %m+% months(as.numeric(input$noOfMonths_click))
+      end_date <- end_date - as.difftime(1, unit="days")
+      updateDateRangeInput(session, "completion_date", start = Sys.Date() %m+% months(as.numeric(input$noOfMonths_click) - 1), end = end_date)
       updateCheckboxInput(session, "completion_date_toggle", value = TRUE)
       updateSelectInput(session, "treatment", selected = character(0))
       # updateRadioButtons(session,"treatment_andor", selected = "AND")
