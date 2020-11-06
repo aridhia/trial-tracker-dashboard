@@ -10,7 +10,7 @@ server <- function(input, output, session) {
   })
 
   # TODO - refactor this to the database
-  date_data_transfer <- "2020-10-05"
+  date_data_transfer <- "2020-11-02"
 
   # -------------------------------------------------------------------------------------------------------
   # Fetch data from the database
